@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduAir - Premium Private Jet Experience</title>
+    <style>
+        /* --- LUKSUSOWA TYPOGRAFIA (Rolex / Bombardier Vibe) --- */
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Lexend+Peta:wght@400;500&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-metal: #121214;
+            --text-silver: #ececf1;
+            --text-muted: #888891;
+            --metal-edge: rgba(255, 255, 255, 0.25);
+            
+            /* ZŁOTA PALETA LUXURY */
+            --gold-dark: #7a5215;
+            --gold-base: #c5a059;
+            --gold-light: #fceabb;
+            --gold-white: #ffffff;
+            --accent-gold-glow: rgba(197, 160, 89, 0.5);
+            --accent-gold-intense: rgba(252, 234, 187, 0.8);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            height: 100dvh;
+            width: 100vw;
+            background-color: #030303;
+            color: var(--text-silver);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            perspective: 2000px; 
+            transition: filter 0.4s ease;
+        }
+
+        /* --- FADE IN NA START (Połączenie z poprzednim ekranem) --- */
+        #fade-in-start {
+            position: fixed; inset: 0; background-color: #000;
+            z-index: 999999; pointer-events: none;
+            animation: fadeOutBlack 1.5s ease-in-out forwards;
+        }
+        @keyframes fadeOutBlack {
+            0% { opacity: 1; }
+            40% { opacity: 1; } /* Utrzymuje czerń przez ułamek sekundy */
+            100% { opacity: 0; }
+        }
+
+        /* --- SUBTELNA WINIETA NA TLE --- */
+        .bg-vignette {
+            position: absolute; inset: 0; pointer-events: none; z-index: 5;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.7) 100%);
+        }
+
+        /* --- SKIP BUTTON --- */
+        .skip-btn {
+            position: absolute; top: 45px; right: 65px; z-index: 10000;
+            background: transparent; border: 1px solid rgba(255,255,255,0.15); color: var(--text-muted);
+            font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; padding: 8px 16px;
+            cursor: pointer; transition: all 0.3s ease; border-radius: 4px;
+        }
+        .skip-btn:hover { color: #fff; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.05); }
+        .skip-btn.hidden { opacity: 0; pointer-events: none; }
+
+        /* --- ELEGANCKIE I POWOLNE WROTA (SHUTTERS) --- */
+        .shutter {
+            position: fixed; left: 0; width: 100%; height: 0;
+            background: #050505; z-index: 100001; pointer-events: none;
+            transition: height 2s cubic-bezier(0.25, 1, 0.5, 1); 
+        }
+        #shutter-top { top: 0; border-bottom: 1px solid rgba(197, 160, 89, 0.15); }
+        #shutter-bottom { bottom: 0; border-top: 1px solid rgba(197, 160, 89, 0.15); }
+        
+        body.launch-active #shutter-top, 
+        body.launch-active #shutter-bottom { height: 50.1%; }
+
+        /* --- METALICZNY EKRAN KOŃCOWY (SKÓRA/ALCANTARA) --- */
+        #final-blackout {
+            position: fixed; inset: 0; 
+            background-color: #060606; 
+            background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noise"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noise)" opacity="0.03"/%3E%3C/svg%3E');
+            z-index: 100002;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; 
+            transition: opacity 2.5s ease; 
+        }
+        #final-blackout.active { opacity: 1; pointer-events: auto; }
+        
+        /* --- EFEKT GRAWERU I LENIWEGO ZŁOTA --- */
+        .wow-sentence {
+            font-family: 'Lexend Peta', sans-serif;
+            font-weight: 300;
+            text-transform: uppercase;
+            font-size: 24px; 
+            letter-spacing: 12px; 
+            line-height: 2.2; 
+            text-align: center;
+            max-width: 85%;
+            
+            /* Gradient przeprojektowany: Złoto po lewej, ciemny metal po prawej */
+            background: linear-gradient(110deg, var(--gold-light) 0%, var(--gold-base) 15%, var(--gold-dark) 30%, #1a1a1a 45%, #050505 100%);
+            background-size: 300% auto;
+            background-position: 100% center; /* Ustawienie startowe na ciemnym kolorze */
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            
+            filter: drop-shadow(0px 1px 0px rgba(255, 255, 255, 0.08)) drop-shadow(0px -1px 1px rgba(0, 0, 0, 1));
+            
+            -webkit-mask-image: linear-gradient(to right, #000 50%, transparent 50%);
+            -webkit-mask-size: 200% 100%;
+            -webkit-mask-position: 100% 0;
+            opacity: 1;
+            transform: scale(0.95);
+        }
+
+        .wow-sentence.reveal {
+            /* Nowe, gładkie animacje: najpierw powolne grawerowanie (4s), potem wylewa się złoto (4.5s) i zostaje */
+            animation: 
+                writeEngraving 4s ease-out forwards, 
+                pourGold 4.5s ease-out 2s forwards; 
+        }
+
+        @keyframes writeEngraving {
+            0% { -webkit-mask-position: 100% 0; transform: scale(0.95); filter: blur(4px) drop-shadow(0px 0px 0px transparent); }
+            100% { -webkit-mask-position: 0% 0; transform: scale(1); filter: blur(0px) drop-shadow(0px 1px 0px rgba(255, 255, 255, 0.08)) drop-shadow(0px -1px 1px rgba(0, 0, 0, 1)); }
+        }
+
+        @keyframes pourGold {
+            0% { background-position: 100% center; }
+            100% { background-position: 0% center; } /* Zatrzymuje się całkowicie na złocie */
+        }
+
+        /* --- KINOWE PASY (LETTERBOXING) --- */
+        .cinematic-bars {
+            position: fixed; left: 0; width: 100%; height: 0; background: #000; z-index: 9999;
+            transition: height 1.5s cubic-bezier(0.8, 0, 0.2, 1); pointer-events: none;
+        }
+        .cinematic-bar-top { top: 0; }
+        .cinematic-bar-bottom { bottom: 0; }
+        body.launch-active .cinematic-bars { height: 12vh; } 
+
+        /* --- ST. MORITZ FROSTED INTRO --- */
+        .frosted-intro {
+            position: fixed; inset: 0; z-index: 1000; background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(50px) saturate(1.2); -webkit-backdrop-filter: blur(50px) saturate(1.2);
+            pointer-events: none; transition: opacity 3s cubic-bezier(0.4, 0, 0.2, 1), backdrop-filter 3s ease, -webkit-backdrop-filter 3s ease;
+            opacity: 1; /* Szron jest od początku, ale przykrywa go czarne tło */
+        }
+        .frosted-intro::after {
+            content: ''; position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 600 600' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.12; mix-blend-mode: overlay;
+        }
+        .frosted-intro.melted { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
+
+        .ice-frame {
+            position: fixed; inset: 0; z-index: 900; pointer-events: none;
+            background: radial-gradient(circle, transparent 65%, rgba(197, 160, 89, 0.05) 100%); box-shadow: inset 0 0 120px rgba(255, 255, 255, 0.05);
+        }
+
+        body::after {
+            content: ''; position: absolute; inset: 0; z-index: 900; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.04; mix-blend-mode: overlay;
+        }
+
+        /* --- MAJESTATYCZNE, POWOLNE ODDALANIE INTERFEJSU --- */
+        body.launch-active .stage, body.launch-active header, body.launch-active .start-action, body.launch-active .manifest-btn {
+            transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1), opacity 4s cubic-bezier(0.25, 1, 0.5, 1), filter 4s ease;
+            transform: scale(0.9) translateY(-10px); opacity: 0; filter: blur(15px); pointer-events: none;
+        }
+        body.launch-active .bg-parallax-wrapper {
+            transition: transform 8s cubic-bezier(0.25, 1, 0.5, 1), filter 6s ease;
+            transform: scale(1.05) !important; filter: brightness(0.1) blur(10px);
+        }
+
+        .bg-parallax-wrapper {
+            position: absolute; top: -3%; left: -3%; width: 106%; height: 106%; z-index: 0;
+            transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        body:has(.flight-serial:hover) .bg-parallax-wrapper { 
+            filter: brightness(0.4); 
+        }
+
+        .dramatic-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1549880181-56a44cf4a9a5?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover; background-position: center 40%;
+            filter: brightness(0.65) contrast(1.15) saturate(0.8) sepia(0.15) hue-rotate(195deg);
+            transform: scale(1.08); animation: slowPushIn 70s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        .sapphire-crystal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
+            background: radial-gradient(circle at center, rgba(0,5,20,0.1) 0%, rgba(0,0,5,0.95) 100%); mix-blend-mode: multiply; pointer-events: none;
+            box-shadow: inset 0 0 100px rgba(197, 160, 89, 0.05), inset 0 0 20px rgba(255, 255, 255, 0.1); backdrop-filter: brightness(1.05) contrast(1.02);
+        }
+
+        .lens-flare {
+            position: absolute; top: var(--mouse-y, 50%); left: 0; width: 200%; height: 8px; transform: translateY(-50%);
+            background: linear-gradient(90deg, transparent 0%, rgba(197, 160, 89, 0.0) 20%, rgba(252, 234, 187, 0.3) 45%, rgba(255,255,255,0.8) 50%, rgba(252, 234, 187, 0.3) 55%, rgba(197, 160, 89, 0.0) 80%, transparent 100%);
+            mix-blend-mode: screen; pointer-events: none; z-index: 3; filter: blur(2px); opacity: 0.4; transition: top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .crystal-reflection {
+            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06) 0%, transparent 50%);
+            mix-blend-mode: screen; pointer-events: none; z-index: 2; transition: background 0.15s ease;
+        }
+
+        @keyframes slowPushIn { to { transform: scale(1); } }
+
+        /* --- HEADER --- */
+        header {
+            display: flex; justify-content: space-between; align-items: center; padding: 45px 65px; position: relative; z-index: 100;
+            opacity: 0; animation: fadeIn 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s forwards; transition: filter 0.4s ease, opacity 0.4s ease;
+        }
+        
+        body:has(.stat-card:hover) header, 
+        body:has(.stat-card:hover) .route-container svg,
+        body:has(.stat-card:hover) .waypoint,
+        body:has(.stat-card:hover) .compass-ring,
+        body:has(.stat-card:hover) .start-action,
+        body:has(.stat-card:hover) .manifest-btn {
+            filter: brightness(0.4); opacity: 0.8; 
+        }
+
+        .logo { 
+            font-family: 'Lexend Peta', sans-serif; font-size: 22px; font-weight: 500; letter-spacing: 10px; color: #fff; 
+            background: linear-gradient(to bottom, #ffffff 20%, #888 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.8)); 
+        }
+
+        .flight-serial {
+            position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 6px 16px;
+            background: linear-gradient(180deg, #0a0a0c 0%, #16171b 100%); border-radius: 4px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.1), 0 -1px 0 rgba(0,0,0,0.8);
+            border-left: 1px solid #000; border-right: 1px solid #000; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .flight-serial:hover { transform: translateX(-50%) scale(1.05); box-shadow: inset 0 2px 6px rgba(0,0,0,0.9), 0 0 15px var(--accent-gold-glow), 0 1px 0 rgba(255,255,255,0.2); }
+
+        .flight-serial .status-dot { width: 4px; height: 4px; background: var(--gold-light); border-radius: 50%; box-shadow: 0 0 8px var(--gold-light); animation: pulseDot 3s ease-in-out infinite alternate; }
+        @keyframes pulseDot { 0% { opacity: 0.4; } 100% { opacity: 1; } }
+        
+        .flight-serial .label { font-size: 8px; color: #6e727a; text-transform: uppercase; letter-spacing: 4px; font-weight: 600; }
+        .flight-serial .value { font-size: 12px; color: #e4e4eb; font-weight: 400; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.5px; text-shadow: 0 0 8px rgba(255,255,255,0.2); }
+
+        .back-btn {
+            display: flex; align-items: center; gap: 12px; background: transparent; border: none; color: var(--text-muted); font-family: 'Montserrat', sans-serif;
+            font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .back-btn:hover { color: #fff; transform: translateX(-4px); text-shadow: 0 0 10px rgba(255,255,255,0.4); }
+
+        /* --- STAGE --- */
+        .stage { flex-grow: 1; position: relative; display: flex; justify-content: center; align-items: center; width: 100%; z-index: 10; }
+        .route-container { position: absolute; top: 15%; width: 85%; max-width: 1100px; height: 500px; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.9)); }
+        
+        .compass-ring { position: absolute; inset: -40px; z-index: 5; pointer-events: none; opacity: 0; animation: fadeIn 2s cubic-bezier(0.2, 0.8, 0.2, 1) 2.5s forwards; transition: filter 0.4s ease; }
+        .c-point { position: absolute; font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #44474c; letter-spacing: 2px; font-weight: 400; display: flex; align-items: center; gap: 6px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+        .c-point span { color: #6e727a; font-size: 11px; }
+        .c-n { top: 0; left: 50%; transform: translateX(-50%); } .c-s { bottom: 0; left: 50%; transform: translateX(-50%); }
+        .c-e { top: 50%; right: -20px; transform: translateY(-50%) rotate(90deg); } .c-w { top: 50%; left: -20px; transform: translateY(-50%) rotate(-90deg); }
+
+        svg.map-svg { width: 100%; height: 100%; overflow: visible; transition: filter 0.4s ease; }
+        .path-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 3; stroke-linecap: round; }
+        
+        .path-active { 
+            fill: none; 
+            stroke: url(#solidGoldMetallic); 
+            stroke-width: 3.5; 
+            stroke-linecap: round; 
+            filter: drop-shadow(0 0 10px var(--accent-gold-glow)) drop-shadow(0 0 3px var(--gold-light)); 
+        }
+
+        .tracer-flare {
+            position: absolute; width: 6px; height: 6px; background: #fff; border-radius: 50%;
+            offset-path: path("M 50,350 C 250,450 400,50 650,150 S 900,350 950,250"); offset-distance: 0%; z-index: 15; opacity: 0; 
+            box-shadow: 0 0 10px 4px #fff, 0 0 20px 10px var(--gold-light), 0 0 40px 20px var(--gold-base);
+        }
+        .tracer-flare.active { opacity: 1; animation: runFlare 4.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards; }
+        @keyframes runFlare { 0% { offset-distance: 0%; opacity: 0; } 5% { opacity: 1; } 95% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
+
+        .radar-sweep {
+            position: absolute; width: 180px; height: 4px; background: linear-gradient(90deg, transparent 0%, rgba(252,234,187,0.9) 50%, transparent 100%);
+            border-radius: 50%; offset-path: path("M 50,350 C 250,450 400,50 650,150 S 900,350 950,250"); offset-distance: 0%; z-index: 14; opacity: 0;
+            box-shadow: 0 0 20px 5px var(--gold-base), 0 0 40px 15px var(--accent-gold-glow); filter: blur(2px); mix-blend-mode: screen; 
+        }
+        .radar-sweep.active { animation: opticalSweep 8s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+        @keyframes opticalSweep { 0% { offset-distance: -10%; opacity: 0; } 10% { opacity: 0.8; } 30% { opacity: 0.8; } 40% { offset-distance: 110%; opacity: 0; } 100% { offset-distance: 110%; opacity: 0; } }
+
+        .waypoint { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; opacity: 0; pointer-events: none; z-index: 20; transition: filter 0.4s ease; }
+        .waypoint.dormant { opacity: 0.4; animation: dormantPulse 4s ease-in-out infinite alternate; }
+        @keyframes dormantPulse { from { opacity: 0.3; } to { opacity: 0.6; } }
+        .waypoint.revealed { opacity: 1; transition: opacity 0.8s ease; animation: none; pointer-events: auto; cursor: crosshair; }
+        .waypoint::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 180px; height: 180px; border-radius: 50%; z-index: 30; }
+
+        .dot {
+            width: 18px; height: 18px; border-radius: 50%; position: relative; z-index: 2; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: radial-gradient(circle at 30% 30%, var(--gold-light) 0%, var(--gold-base) 40%, var(--gold-dark) 80%, #3a2409 100%);
+            border: 1px solid rgba(252, 234, 187, 0.5);
+            box-shadow: 
+                inset 0 -2px 5px rgba(0,0,0,0.8),
+                inset 0 2px 4px rgba(255,255,255,0.6),
+                0 0 15px var(--accent-gold-glow),
+                0 0 3px var(--gold-light);
+        }
+        .waypoint:hover .dot { 
+            background: radial-gradient(circle at 50% 50%, #ffffff 0%, var(--gold-light) 20%, var(--gold-base) 60%, var(--gold-dark) 100%);
+            transform: scale(1.3);
+            border: 1px solid #ffffff;
+            box-shadow: 
+                inset 0 -3px 6px rgba(0,0,0,0.9),
+                0 0 25px var(--gold-base), 
+                0 0 10px #ffffff;
+        }
+
+        .waypoint-label { margin-top: 24px; font-size: 9px; font-weight: 600; color: #b0b4bd; letter-spacing: 4px; text-transform: uppercase; transform: translateY(10px); opacity: 0; text-shadow: 0 4px 8px rgba(0,0,0,1); transition: color 2.5s ease, text-shadow 2.5s ease; }
+        .waypoint-sub { font-family: 'Playfair Display', serif; font-style: italic; font-size: 13px; color: var(--text-muted); margin-top: 4px; letter-spacing: 1px; transform: translateY(10px); opacity: 0; text-shadow: 0 2px 4px rgba(0,0,0,1); }
+        
+        .waypoint:hover .waypoint-label { color: #ffffff; text-shadow: 0 0 15px var(--accent-gold-intense), 0 4px 8px rgba(0,0,0,1); transition: color 0.1s ease, text-shadow 0.1s ease; }
+        .waypoint:hover .waypoint-sub { color: var(--gold-light); }
+        .waypoint.revealed .waypoint-label, .waypoint.revealed .waypoint-sub { animation: slideUpFade 1s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; animation-delay: 0.2s; }
+
+        .stats-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 30; }
+
+        .stat-card {
+            position: absolute; border: 1px solid #3a3d45; border-radius: 12px; padding: 20px 28px; display: flex; align-items: center; gap: 20px; opacity: 0; transform: translateY(30px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.8);
+            transform-style: preserve-3d; pointer-events: auto; overflow: hidden; transition: filter 0.4s ease;
+            background-image: linear-gradient(135deg, rgba(40,42,47,0.9) 0%, rgba(21,22,26,0.9) 100%), repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 3px);
+        }
+        .stats-container:has(.stat-card:hover) .stat-card:not(:hover) { filter: brightness(0.6); opacity: 0.7; }
+
+        .stat-card::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(to bottom right, transparent 40%, rgba(255, 255, 255, 0.08) 50%, transparent 60%);
+            transform: rotate(var(--sheen-rotate, 45deg)) translate(var(--sheen-x, 0%), var(--sheen-y, 0%)); pointer-events: none; mix-blend-mode: color-dodge;
+        }
+
+        .stat-icon, .stat-content { position: relative; z-index: 2; transform: translateZ(15px); }
+        .stat-card.revealed { animation: slideUpHeavy 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideUpHeavy { 0% { opacity: 0; transform: translateY(40px) scale(0.95); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+
+        .stat-icon { color: #fff; display: flex; align-items: center; opacity: 0.8; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.6)); }
+        .stat-content { display: flex; flex-direction: column; gap: 6px; }
+        .stat-title { font-size: 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 3px; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+        .stat-value { font-size: 16px; font-weight: 400; color: #fff; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.5px; font-variant-numeric: tabular-nums; text-shadow: 0 2px 6px rgba(0,0,0,0.8); }
+
+        #stat-mode { top: -10%; left: 50%; transform: translate(-50%, 30px); }
+        #stat-mode.revealed { animation: floatInCenterHeavy 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes floatInCenterHeavy { 0% { opacity: 0; transform: translate(-50%, 40px) scale(0.95); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+        #stat-time { top: 65%; left: 8%; } #stat-pax { top: 12%; right: 8%; }
+
+        .start-action { position: absolute; bottom: 8vh; left: 50%; transform: translateX(-50%); opacity: 0; pointer-events: none; z-index: 100; transition: filter 0.4s ease; }
+        .start-action.revealed { opacity: 1; pointer-events: auto; animation: fadeInZoom 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        .start-btn {
+            background: linear-gradient(180deg, #e4e4e9 0%, #a8aab0 100%); color: #000; border: none;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), inset 0 2px 0 rgba(255,255,255,1), inset 0 -2px 0 rgba(0,0,0,0.4), 0 0 0 1px #444; 
+            padding: 16px 48px; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700;
+            letter-spacing: 4px; text-transform: uppercase; cursor: pointer; transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; align-items: center; gap: 14px;
+        }
+        .start-btn:hover {
+            transform: translateY(-2px); background: linear-gradient(180deg, #ffffff 10%, #c0c4cc 100%);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9), inset 0 2px 0 rgba(255,255,255,1), inset 0 -2px 0 rgba(0,0,0,0.4), 0 0 20px rgba(255,255,255,0.2), 0 0 0 1px #555;
+        }
+        .start-btn:active:not(.locked) {
+            transform: translateY(4px); background: linear-gradient(180deg, #90949c 0%, #b0b4bc 100%);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.9), inset 0 6px 15px rgba(0,0,0,0.8), inset 0 -1px 0 rgba(255,255,255,0.2), 0 0 0 1px #111; color: rgba(0,0,0,0.6); transition: all 0.05s ease;
+        }
+        .start-btn.locked {
+            transform: translateY(2px); background: linear-gradient(180deg, #b0b4bc 0%, #90949c 100%);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.9), inset 0 4px 8px rgba(0,0,0,0.4), inset 0 -1px 0 rgba(255,255,255,0.3), 0 0 0 1px #222;
+        }
+
+        .manifest-btn {
+            position: absolute; bottom: 45px; right: 65px; background: transparent; 
+            border: 1px solid rgba(197, 160, 89, 0.3);
+            color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px;
+            padding: 10px 18px; border-radius: 4px; cursor: pointer; transition: all 0.3s ease; z-index: 100; opacity: 0; pointer-events: none;
+        }
+        .manifest-btn.revealed { animation: fadeIn 1.5s ease forwards; pointer-events: auto; }
+        .manifest-btn:hover { 
+            border-color: var(--gold-light); color: var(--gold-light); 
+            box-shadow: 0 0 15px var(--accent-gold-glow); background: rgba(197, 160, 89, 0.05); 
+        }
+
+        .manifest-modal {
+            position: fixed; inset: 0; z-index: 99999; background: rgba(5, 5, 8, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            opacity: 0; pointer-events: none; transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .manifest-modal.active { opacity: 1; pointer-events: auto; }
+        
+        .manifest-content {
+            position: relative; width: 600px; max-width: 90%; 
+            background: linear-gradient(135deg, #111 0%, #050505 100%);
+            border: 1px solid rgba(197, 160, 89, 0.2); border-radius: 8px; padding: 50px; 
+            box-shadow: 0 50px 100px rgba(0,0,0,0.95), inset 0 0 30px rgba(197, 160, 89, 0.03);
+            transform: translateY(20px) scale(0.95); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .manifest-modal.active .manifest-content { transform: translateY(0) scale(1); }
+        
+        .close-manifest { position: absolute; top: 25px; right: 30px; background: transparent; border: none; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 2px; cursor: pointer; transition: all 0.3s ease; }
+        .close-manifest:hover { color: var(--gold-light); text-shadow: 0 0 8px var(--accent-gold-glow); }
+        
+        .m-header { 
+            font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 500;
+            background: linear-gradient(to right, var(--gold-light) 0%, var(--gold-base) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: 6px; text-transform: uppercase; border-bottom: 1px solid rgba(197, 160, 89, 0.2); padding-bottom: 20px; margin-bottom: 30px; 
+        }
+        .m-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px 40px; }
+        .m-item { display: flex; flex-direction: column; gap: 6px; }
+        .m-label { font-family: 'Montserrat', sans-serif; font-size: 8px; color: #6e727a; text-transform: uppercase; letter-spacing: 4px; font-weight: 500; }
+        .m-val { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--text-silver); font-weight: 300; letter-spacing: 1px; }
+        
+        .m-val.highlight { color: var(--gold-light); text-shadow: 0 0 10px var(--accent-gold-glow); font-weight: 500; }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInZoom { from { opacity: 0; transform: translateX(-50%) scale(0.95); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="fade-in-start"></div>
+
+    <div class="shutter" id="shutter-top"></div>
+    <div class="shutter" id="shutter-bottom"></div>
+
+    <div id="final-blackout">
+        <div class="wow-sentence">The sky is no longer the limit<br>it’s your new playground</div>
+    </div>
+
+    <div class="cinematic-bars cinematic-bar-top"></div>
+    <div class="cinematic-bars cinematic-bar-bottom"></div>
+
+    <div class="frosted-intro" id="frosted-intro"></div><div class="ice-frame"></div>
+
+    <div class="bg-parallax-wrapper" id="bg-parallax">
+        <div class="bg-vignette"></div>
+        <div class="dramatic-bg"></div>
+    </div>
+    
+    <div class="sapphire-crystal-overlay"></div>
+    <div class="lens-flare"></div> 
+    <div class="crystal-reflection"></div>
+
+    <header>
+        <button class="skip-btn" id="skip-btn">[SKIP SEQUENCE]</button>
+        <div class="logo">EduAir</div>
+        <div class="flight-serial">
+            <div class="status-dot"></div><span class="label">FLT REF</span><span class="value decode-text" data-target="EA-042">00-000</span>
+        </div>
+        <button class="back-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>Planning</button>
+    </header>
+
+    <div class="stage">
+        <div class="route-container">
+            <div class="compass-ring">
+                <div class="c-point c-n"><span>N</span> 000&deg;</div>
+                <div class="c-point c-e"><span>E</span> 090&deg;</div>
+                <div class="c-point c-s"><span>S</span> 180&deg;</div>
+                <div class="c-point c-w"><span>W</span> 270&deg;</div>
+            </div>
+
+            <svg class="map-svg" viewBox="0 0 1000 450" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <linearGradient id="solidGoldMetallic" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#7a5215; stop-opacity:1" />
+                        <stop offset="15%" style="stop-color:#c5a059; stop-opacity:1" />
+                        <stop offset="45%" style="stop-color:#fceabb; stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#ffffff; stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#fceabb; stop-opacity:1" />
+                        <stop offset="85%" style="stop-color:#c5a059; stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#7a5215; stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <path class="path-bg" d="M 50,350 C 250,450 400,50 650,150 S 900,350 950,250" />
+                <path id="flight-path" class="path-active" d="M 50,350 C 250,450 400,50 650,150 S 900,350 950,250" />
+            </svg>
+
+            <div class="tracer-flare" id="tracer"></div><div class="radar-sweep" id="radar-sweep"></div>
+
+            <div class="waypoint dormant" id="wp-1" style="left: 5%; top: 78%;"><div class="ripple"></div><div class="dot"></div><div class="waypoint-label">NUCLEUS DEPARTURE</div><div class="waypoint-sub">Cellular Core</div></div>
+            <div class="waypoint dormant" id="wp-2" style="left: 65%; top: 33%;"><div class="ripple"></div><div class="dot"></div><div class="waypoint-label">CYTOPLASM TRANSIT</div><div class="waypoint-sub">Protein Synthesis</div></div>
+            <div class="waypoint dormant" id="wp-3" style="left: 95%; top: 55%;"><div class="ripple"></div><div class="dot"></div><div class="waypoint-label">MITOCHONDRION ARRIVAL</div><div class="waypoint-sub">Energy Production</div></div>
+
+            <div class="stats-container">
+                <div class="stat-card" id="stat-mode">
+                    <div class="stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
+                    <div class="stat-content"><span class="stat-title">Flight Control</span><span class="stat-value">PILOT ASSIST</span></div>
+                </div>
+                <div class="stat-card" id="stat-time">
+                    <div class="stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                    <div class="stat-content"><span class="stat-title">Chrono FLT</span><span class="stat-value decode-text" data-target="00:45:00">00:00:00</span></div>
+                </div>
+                <div class="stat-card" id="stat-pax">
+                    <div class="stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+                    <div class="stat-content"><span class="stat-title">Souls Onboard</span><span class="stat-value decode-text" data-target="12 PAX">00 PAX</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="start-action" id="start-action">
+        <button class="start-btn" id="engage-btn">PROCEED TO BOARDING</button>
+    </div>
+
+    <button class="manifest-btn" id="manifest-btn">[+] FLIGHT MANIFEST</button>
+
+    <div class="manifest-modal" id="manifest-modal">
+        <div class="manifest-content">
+            <button class="close-manifest" id="close-manifest">[X] CLOSE</button>
+            <div class="m-header">FLIGHT LOG / EA-042</div>
+            <div class="m-grid">
+                <div class="m-item"><span class="m-label">AIRCRAFT</span><span class="m-val highlight">BOMBARDIER GLOBAL 7500</span></div>
+                <div class="m-item"><span class="m-label">MISSION</span><span class="m-val highlight">CELL BIOLOGY</span></div>
+                <div class="m-item"><span class="m-label">DEPARTURE</span><span class="m-val">NUCLEUS (CORE) / 08:00Z</span></div>
+                <div class="m-item"><span class="m-label">ARRIVAL</span><span class="m-val">MITOCHONDRION (POWER) / 08:45Z</span></div>
+                <div class="m-item"><span class="m-label">CRUISE SPEED</span><span class="m-val highlight">MACH 0.92</span></div>
+                <div class="m-item"><span class="m-label">DIFFICULTY LEVEL</span><span class="m-val">ADVANCED TURBULENCE</span></div>
+                <div class="m-item"><span class="m-label">CAPTAIN</span><span class="m-val">A. WEBER</span></div>
+                <div class="m-item"><span class="m-label">CABIN STATUS</span><span class="m-val">PRESSURIZED / SECURED</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx;
+        let jetAmbientStarted = false;
+        let animationTimeouts = [];
+
+        function initAudio() {
+            if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+            if (!jetAmbientStarted) { startJetAmbient(); }
+        }
+
+        document.addEventListener('click', initAudio, { once: true });
+
+        function startJetAmbient() {
+            if(jetAmbientStarted || !audioCtx) return;
+            jetAmbientStarted = true;
+            const bufferSize = audioCtx.sampleRate * 2;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            let lastOut = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                let white = Math.random() * 2 - 1;
+                output[i] = (lastOut + (0.02 * white)) / 1.02; 
+                lastOut = output[i]; output[i] *= 3.5; 
+            }
+            const noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = noiseBuffer; noiseSource.loop = true;
+            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 180; 
+            const gain = audioCtx.createGain(); gain.gain.value = 0.15; 
+            noiseSource.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+            noiseSource.start();
+        }
+
+        function playTick() {
+            if (!audioCtx || audioCtx.state === 'suspended') return;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(2800, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(0.04, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.04);
+        }
+
+        function playEngage() {
+            initAudio(); 
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(30, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 2.5); 
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 3.0);
+            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(100, audioCtx.currentTime);
+            filter.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 2.5);
+            osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 3.0);
+
+            const ping = audioCtx.createOscillator(); const pingGain = audioCtx.createGain();
+            ping.type = 'sine'; ping.frequency.setValueAtTime(1200, audioCtx.currentTime); ping.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 1.0);
+            pingGain.gain.setValueAtTime(0.15, audioCtx.currentTime); pingGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+            ping.connect(pingGain); pingGain.connect(audioCtx.destination);
+            ping.start(); ping.stop(audioCtx.currentTime + 1.5);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const intro = document.getElementById('frosted-intro');
+            const path = document.getElementById('flight-path');
+            const skipBtn = document.getElementById('skip-btn');
+            const pathLength = path.getTotalLength();
+            path.style.strokeDasharray = pathLength; path.style.strokeDashoffset = pathLength;
+
+            // 1. Zdejmujemy szron DOPIERO GDY czarne tło zniknie (po 1.5 sekundy)
+            setTimeout(() => { if(intro) intro.classList.add('melted'); }, 1500);
+
+            const drawDuration = 4500; 
+            
+            // 2. Linia lotu zaczyna się rysować DOPIERO gdy szron odmarznie (po 3.5 sekundy)
+            const startDelay = 3500; 
+
+            const decodeText = (element, instant = false) => {
+                if (!element) return;
+                const target = element.getAttribute('data-target');
+                if (instant) { element.innerText = target; return; }
+                
+                let iterations = 0;
+                const interval = setInterval(() => {
+                    playTick(); 
+                    element.innerText = target.split('').map((char, index) => {
+                        if(index < iterations / 8 || char === ':' || char === '-' || char === ' ') return char;
+                        return Math.floor(Math.random() * 10);
+                    }).join('');
+                    if(iterations >= target.length * 8) { clearInterval(interval); element.innerText = target; }
+                    iterations++;
+                }, 100); 
+            };
+
+            const init3DHover = () => {
+                const cards = document.querySelectorAll('.stat-card');
+                cards.forEach(card => {
+                    const isModeCard = card.id === 'stat-mode';
+                    const baseTransform = isModeCard ? 'translate(-50%, 0)' : 'translateY(0)';
+                    card.style.opacity = '1'; card.style.transform = baseTransform; card.style.animation = 'none'; 
+
+                    card.addEventListener('mousemove', (e) => {
+                        const rect = card.getBoundingClientRect();
+                        const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+                        const centerX = rect.width / 2; const centerY = rect.height / 2;
+                        const angle = Math.atan2(y - centerY, x - centerX) * (180 / Math.PI) - 90;
+                        card.style.setProperty('--sheen-rotate', `${angle}deg`);
+                        const rotateX = ((y - centerY) / centerY) * -8; const rotateY = ((x - centerX) / centerX) * 8;
+                        card.style.transition = 'none'; 
+                        card.style.transform = `${baseTransform} perspective(2000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+                        card.style.boxShadow = `0 40px 75px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.8)`;
+                        card.style.zIndex = 40;
+                    });
+
+                    card.addEventListener('mouseleave', () => {
+                        card.style.transition = 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.8s ease'; 
+                        card.style.transform = baseTransform; 
+                        card.style.boxShadow = `0 30px 60px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.8)`;
+                        card.style.zIndex = 30;
+                    });
+                });
+            };
+
+            document.addEventListener('mousemove', (e) => {
+                const crystal = document.querySelector('.crystal-reflection');
+                const flare = document.querySelector('.lens-flare');
+                if(crystal) {
+                    crystal.style.setProperty('--mouse-x', `${(e.clientX / window.innerWidth) * 100}%`);
+                    crystal.style.setProperty('--mouse-y', `${(e.clientY / window.innerHeight) * 100}%`);
+                }
+                if(flare) flare.style.setProperty('--mouse-y', `${(e.clientY / window.innerHeight) * 100}%`);
+
+                const centerX = window.innerWidth / 2; const centerY = window.innerHeight / 2;
+                const moveX = (e.clientX - centerX) * -0.03; const moveY = (e.clientY - centerY) * -0.03;
+                const bgParallax = document.getElementById('bg-parallax');
+
+                if(!document.body.classList.contains('launch-active')) {
+                    if(bgParallax) bgParallax.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                }
+            });
+
+            // MANIFEST MODAL LOGIC
+            const manifestBtn = document.getElementById('manifest-btn');
+            const manifestModal = document.getElementById('manifest-modal');
+            const closeManifestBtn = document.getElementById('close-manifest');
+
+            if(manifestBtn && manifestModal && closeManifestBtn) {
+                manifestBtn.addEventListener('click', () => { initAudio(); playTick(); manifestModal.classList.add('active'); });
+                closeManifestBtn.addEventListener('click', () => { playTick(); manifestModal.classList.remove('active'); });
+            }
+
+            const engageBtn = document.getElementById('engage-btn');
+            if(engageBtn) {
+                engageBtn.addEventListener('click', () => {
+                    playEngage(); engageBtn.classList.add('locked'); skipBtn.classList.add('hidden');
+                    if(manifestModal) manifestModal.classList.remove('active'); 
+                    
+                    setTimeout(() => {
+                        document.body.classList.add('launch-active'); 
+                        
+                        setTimeout(() => {
+                            document.getElementById('final-blackout').classList.add('active');
+                            
+                            setTimeout(() => {
+                                document.querySelector('.wow-sentence').classList.add('reveal');
+                                
+                                // ZMIENIONY CZAS NA 9.5 SEKUNDY (Żeby spokojnie przeczytać)
+                                setTimeout(() => {
+                                    window.location.href = 'boarding.html';
+                                }, 9500); 
+
+                            }, 1500); 
+
+                        }, 2000); 
+                    }, 200); 
+                });
+            }
+
+            // Timeline Główna
+            const runSequence = () => {
+                const serialTarget = document.querySelector('.flight-serial .decode-text');
+                if(serialTarget) decodeText(serialTarget);
+
+                const wp1 = document.getElementById('wp-1'); if(wp1) { wp1.classList.remove('dormant'); wp1.classList.add('revealed'); }
+                const tracer = document.getElementById('tracer'); if(tracer) tracer.classList.add('active'); 
+                
+                path.style.transition = `stroke-dashoffset ${drawDuration}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
+                path.style.strokeDashoffset = 0;
+
+                animationTimeouts.push(setTimeout(() => { const wp2 = document.getElementById('wp-2'); if(wp2) { wp2.classList.remove('dormant'); wp2.classList.add('revealed'); } }, drawDuration * 0.45));
+                animationTimeouts.push(setTimeout(() => { const wp3 = document.getElementById('wp-3'); if(wp3) { wp3.classList.remove('dormant'); wp3.classList.add('revealed'); } }, drawDuration * 0.95));
+
+                animationTimeouts.push(setTimeout(() => {
+                    const statMode = document.getElementById('stat-mode'); if(statMode) statMode.classList.add('revealed');
+                    animationTimeouts.push(setTimeout(() => { const statTime = document.getElementById('stat-time'); if(statTime) { statTime.classList.add('revealed'); decodeText(statTime.querySelector('.decode-text')); } }, 250));
+                    animationTimeouts.push(setTimeout(() => { const statPax = document.getElementById('stat-pax'); if(statPax) { statPax.classList.add('revealed'); decodeText(statPax.querySelector('.decode-text')); } }, 500));
+                    animationTimeouts.push(setTimeout(() => { const startAction = document.getElementById('start-action'); if(startAction) startAction.classList.add('revealed'); }, 1400));
+                    animationTimeouts.push(setTimeout(() => { if(manifestBtn) manifestBtn.classList.add('revealed'); skipBtn.classList.add('hidden'); }, 1800));
+                    animationTimeouts.push(setTimeout(() => { const radarSweep = document.getElementById('radar-sweep'); if(radarSweep) radarSweep.classList.add('active'); }, 2500));
+                    animationTimeouts.push(setTimeout(init3DHover, 2200));
+                }, drawDuration + 400));
+            };
+
+            // Obsługa przeskoczenia sekwencji (Skip)
+            const skipSequence = () => {
+                animationTimeouts.forEach(clearTimeout);
+                skipBtn.classList.add('hidden');
+                
+                path.style.transition = 'none';
+                path.style.strokeDashoffset = 0;
+                
+                ['wp-1', 'wp-2', 'wp-3'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) { el.classList.remove('dormant'); el.classList.add('revealed'); }
+                });
+
+                ['stat-mode', 'stat-time', 'stat-pax', 'start-action', 'manifest-btn'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.classList.add('revealed');
+                });
+                
+                document.querySelectorAll('.decode-text').forEach(el => decodeText(el, true));
+                const radarSweep = document.getElementById('radar-sweep'); if(radarSweep) radarSweep.classList.add('active');
+                init3DHover();
+                
+                // SKRÓT ZWROTU DO BOARDINGU (dla testów)
+                window.location.href = 'boarding.html';
+            };
+
+            skipBtn.addEventListener('click', skipSequence);
+            
+            // Start po opóźnieniu (dajemy czas żeby fad-in-black zniknął zanim wejdzie szkło i mapa)
+            animationTimeouts.push(setTimeout(runSequence, startDelay));
+        });
+    </script>
+</body>
+</html> mam ten bład tutaj na local hoscie crbug/1173575, non-JS module files deprecated.

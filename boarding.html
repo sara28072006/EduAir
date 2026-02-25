@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>EduAir - Flawless Takeoff UI</title>
+    <style>
+        /* Importujemy luksusowy krój 'Inter', 'JetBrains Mono' ORAZ 'Lexend Peta' */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Lexend+Peta:wght@300;400&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+
+        body {
+            background: radial-gradient(circle at center, #1a1c23 0%, #0a0b0e 100%); 
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; 
+            height: 100vh;
+            perspective: 1500px; 
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale;
+            transform-origin: center center;
+        }
+
+        /* --- EKRAN PRZEJŚCIOWY (EFEKT TŁOCZENIA W SKÓRZE) --- */
+        .transition-screen {
+            position: fixed; inset: 0;
+            background-color: #060606; 
+            background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noise"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noise)" opacity="0.03"/%3E%3C/svg%3E');
+            z-index: 11000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; 
+        }
+
+        .trans-title {
+            position: relative;
+            font-family: 'Lexend Peta', sans-serif;
+            font-size: 52px; 
+            font-weight: 400; 
+            letter-spacing: 16px; 
+            margin-bottom: 24px; margin-right: -16px; 
+            
+            color: #060606; 
+            text-shadow: 
+                -2px -3px 4px rgba(0, 0, 0, 0.9), 
+                1px 2px 2px rgba(255, 255, 255, 0.04), 
+                inset 0 0 0 transparent; 
+            
+            opacity: 0; 
+            transform: translateY(10px) scale(0.99); 
+            
+            --shimmer-pos: 200%;
+            --shimmer-opacity: 0;
+        }
+
+        .trans-title::before {
+            content: attr(data-text);
+            position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+            background: linear-gradient(
+                110deg, 
+                transparent 30%, 
+                rgba(226, 194, 117, 0.1) 45%, 
+                rgba(226, 194, 117, 0.6) 50%, 
+                rgba(255, 253, 235, 0.8) 52%, 
+                rgba(226, 194, 117, 0.1) 56%, 
+                transparent 70%
+            );
+            background-size: 200% auto;
+            background-position: var(--shimmer-pos) center;
+            -webkit-background-clip: text;
+            color: transparent;
+            opacity: var(--shimmer-opacity);
+            pointer-events: none;
+            z-index: 2;
+            text-shadow: none; 
+            filter: blur(0.5px); 
+        }
+
+        .trans-subtitle {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 12px; text-transform: uppercase; margin-right: -12px;
+            color: rgba(180, 150, 90, 0.7); 
+            text-shadow: 
+                -1px -1px 2px rgba(0, 0, 0, 0.9),
+                1px 1px 1px rgba(255, 255, 255, 0.05);
+            opacity: 0; 
+            transform: translateY(5px) scale(0.99);
+        }
+
+        /* --- SIATKA INŻYNIERYJNA --- */
+        body::before {
+            content: ''; position: fixed; inset: 0; z-index: 2; pointer-events: none;
+            background-image: 
+                linear-gradient(rgba(226, 194, 117, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(226, 194, 117, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(226, 194, 117, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #e2c275; }
+
+        /* --- TŁO --- */
+        .scenic-bg {
+            position: fixed; inset: -5%; width: 110%; height: 110%; 
+            background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover; background-position: center;
+            filter: brightness(0.95) contrast(1.05) saturate(0.85); 
+            z-index: 1; transform-origin: center;
+        }
+
+        .vignette {
+            position: fixed; inset: 0; z-index: 3; pointer-events: none;
+            background: 
+                linear-gradient(to right, rgba(0,0,0,0.6) 0%, transparent 20%),
+                linear-gradient(to left, rgba(0,0,0,0.6) 0%, transparent 20%),
+                linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 20%),
+                linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 30%);
+        }
+
+        .noise-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 4;
+            background: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+            opacity: 0.04; mix-blend-mode: overlay;
+        }
+
+        /* --- HUD ELEMENTS --- */
+        .hud-header { position: fixed; top: 50px; left: 60px; z-index: 100; pointer-events: none; }
+        .hud-header h1 { font-weight: 300; font-size: 22px; letter-spacing: 10px; text-shadow: 0 5px 20px rgba(0,0,0,0.8); margin-bottom: 2px; }
+        .hud-header span { color: #e2c275; }
+        .hud-subtitle { font-weight: 500; font-size: 9px; color: rgba(255,255,255,0.5); letter-spacing: 4px; display: flex; align-items: center; gap: 8px; text-shadow: 0 2px 5px rgba(0,0,0,0.8); }
+        .recording-dot { width: 5px; height: 5px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 10px #00ff88; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        .hud-stats { position: fixed; bottom: 50px; right: 60px; z-index: 100; pointer-events: none; text-align: right; text-shadow: 0 5px 15px rgba(0,0,0,0.9); font-variant-numeric: tabular-nums; }
+        .stat-label { color: rgba(255,255,255,0.5); font-weight: 500; font-size: 8px; letter-spacing: 4px; margin-bottom: 6px; text-transform: uppercase; }
+
+        .hud-telemetry {
+            position: fixed; bottom: 50px; left: 60px; z-index: 100; pointer-events: none;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.9); display: flex; gap: 40px; 
+            border-left: 1px solid rgba(226, 194, 117, 0.4); padding-left: 15px; font-variant-numeric: tabular-nums;
+        }
+        .hud-telemetry::after { content: ''; position: absolute; bottom: -5px; left: -5px; width: 20px; height: 20px; border-left: 2px solid #e2c275; border-bottom: 2px solid #e2c275; }
+
+        .telemetry-block { display: flex; flex-direction: column; gap: 4px; width: 70px; }
+        .tel-label { color: rgba(255,255,255,0.5); font-weight: 500; font-size: 8px; letter-spacing: 4px; text-transform: uppercase; }
+        .tel-value { 
+            font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; letter-spacing: 2px; 
+            background: linear-gradient(to bottom, #fff 0%, #a5a5a5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+        }
+
+        .thrust-bar { width: 100%; height: 2px; background: rgba(255,255,255,0.1); margin-top: 4px; overflow: hidden; border-radius: 1px; }
+        .thrust-fill { height: 100%; background: #e2c275; box-shadow: 0 0 5px #e2c275; width: 0%; transition: width 0.4s cubic-bezier(0.85, 0, 0.15, 1); }
+
+        /* --- PRZYCISK TAKE OFF --- */
+        .action-panel { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; justify-content: center; align-items: center; }
+        .takeoff-btn {
+            background: rgba(20, 20, 25, 0.85); border: 1px solid rgba(226, 194, 117, 0.4); border-top: 1px solid rgba(226, 194, 117, 0.8); border-radius: 30px;
+            padding: 14px 35px; color: #e2c275; font-family: 'Inter', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 5px;
+            text-shadow: 0 0 10px rgba(226, 194, 117, 0.3); box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 15px rgba(226, 194, 117, 0.1);
+            transition: all 0.4s cubic-bezier(0.85, 0, 0.15, 1); backdrop-filter: blur(10px); text-transform: uppercase; cursor: pointer;
+            position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; touch-action: none;
+        }
+        .takeoff-btn:hover { background: rgba(226, 194, 117, 0.15); box-shadow: 0 15px 30px rgba(0,0,0,0.9), inset 0 0 25px rgba(226, 194, 117, 0.3), 0 0 20px rgba(226, 194, 117, 0.2); transform: translateY(-2px); color: #fff; }
+        .takeoff-btn.engaged { background: #e2c275; font-weight: 600; text-shadow: none; box-shadow: 0 0 40px rgba(226, 194, 117, 0.8); border-color: #fff; pointer-events: none; }
+        .takeoff-btn.engaged .btn-text { color: #000 !important; }
+
+        .hold-progress { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #e2c275; z-index: 1; pointer-events: none; }
+        .btn-text { position: relative; z-index: 2; pointer-events: none; transition: color 0.2s; }
+        .takeoff-btn::before {
+            content: ''; position: absolute; top: 0; left: -150%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: skewX(-20deg); animation: shimmer 4s infinite cubic-bezier(0.19, 1, 0.22, 1); z-index: 3; pointer-events: none;
+        }
+
+        /* --- SCROLL AREA --- */
+        .scroll-area {
+            position: relative; z-index: 10; width: 100vw; height: 100vh;
+            overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding: 100px 0 150px 0; scroll-behavior: smooth;
+        }
+
+        /* --- KADŁUB SAMOLOTU --- */
+        .fuselage-2d {
+            width: 360px; 
+            border-top-left-radius: 180px 350px; border-top-right-radius: 180px 350px;
+            border-bottom-left-radius: 180px 250px; border-bottom-right-radius: 180px 250px; 
+            padding-top: 20px; padding-bottom: 300px; margin-bottom: 50px; 
+            background: linear-gradient(90deg, #06070a 0%, #15171e 12%, #1e2029 50%, #15171e 88%, #06070a 100%);
+            animation: ambient-glow 4s infinite alternate ease-in-out;
+            display: flex; flex-direction: column; align-items: center; position: relative;
+            transform-origin: top center;
+        }
+        @keyframes ambient-glow {
+            0% { box-shadow: 0 80px 150px rgba(0,0,0,0.95), inset 35px 0 50px rgba(0,0,0,0.9), inset -35px 0 50px rgba(0,0,0,0.9), inset 8px 0 15px rgba(226, 194, 117, 0.1), inset -8px 0 15px rgba(226, 194, 117, 0.1); }
+            100% { box-shadow: 0 80px 150px rgba(0,0,0,0.95), inset 35px 0 50px rgba(0,0,0,0.9), inset -35px 0 50px rgba(0,0,0,0.9), inset 15px 0 45px rgba(226, 194, 117, 0.35), inset -15px 0 45px rgba(226, 194, 117, 0.35); }
+        }
+
+        .led-strip { position: absolute; width: 1px; height: 85%; top: 10%; background: #e2c275; box-shadow: 0 0 10px #e2c275, 0 0 20px rgba(226, 194, 117, 0.5); z-index: 2; opacity: 0.8; }
+        .led-strip.left { left: 15px; } .led-strip.right { right: 15px; }
+        .radome-line { position: absolute; top: 130px; width: 220px; height: 20px; border-bottom: 1px solid rgba(255,255,255,0.06); box-shadow: 0 1px 0 rgba(0,0,0,0.5); border-radius: 50%; z-index: 2; }
+        .fuselage-center-line { 
+            position: absolute; top: 180px; bottom: 100px; left: 50%; transform: translateX(-50%); width: 1px; 
+            background: linear-gradient(to bottom, transparent, rgba(226, 194, 117, 0.25) 10%, rgba(226, 194, 117, 0.25) 90%, transparent); z-index: 1; animation: center-ambient 4s infinite alternate ease-in-out;
+        }
+        @keyframes center-ambient { 0% { opacity: 0.5; box-shadow: 0 0 5px rgba(226, 194, 117, 0.1); } 100% { opacity: 1; box-shadow: 0 0 20px rgba(226, 194, 117, 0.4); } }
+        .strobe-light { position: absolute; bottom: 30px; width: 6px; height: 6px; background: #ff2a2a; border-radius: 50%; z-index: 10; animation: strobe 1.5s infinite; }
+        @keyframes strobe { 0%, 10% { opacity: 1; box-shadow: 0 0 15px 5px rgba(255, 42, 42, 0.8); } 15%, 100% { opacity: 0.2; box-shadow: none; } }
+
+        /* --- DRZWI i KOKPIT --- */
+        .door-exit { position: absolute; width: 8px; height: 35px; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(10, 12, 15, 0.9); box-shadow: inset 0 0 5px rgba(0,0,0,1); z-index: 5; display: flex; align-items: center; justify-content: center; }
+        .door-exit::after { content: 'EXIT'; position: absolute; font-weight: 500; font-size: 5px; color: rgba(255, 255, 255, 0.3); transform: rotate(-90deg); letter-spacing: 2px; }
+        .door-exit.left { left: 0; border-left: none; border-radius: 0 4px 4px 0; border-right: 1px solid rgba(255,255,255,0.3); }
+        .door-exit.right { right: 0; border-right: none; border-radius: 4px 0 0 4px; border-left: 1px solid rgba(255,255,255,0.3); }
+        .door-exit.right::after { transform: rotate(90deg); }
+        .door-top { top: 320px; } .door-bottom { bottom: 250px; } 
+        .cockpit-window { width: 120px; height: 50px; margin-top: 50px; background: linear-gradient(180deg, #020203 0%, #0a0c10 100%); border-radius: 60px 60px 15px 15px; border: 1px solid rgba(255, 255, 255, 0.08); border-top: 1px solid rgba(255, 255, 255, 0.3); box-shadow: inset 0 10px 20px rgba(255, 255, 255, 0.03), 0 10px 20px rgba(0,0,0,0.8); position: relative; z-index: 5; }
+        .cockpit-label { margin-top: 15px; font-weight: 500; font-size: 7px; color: rgba(255, 255, 255, 0.3); letter-spacing: 3px; z-index: 5; }
+
+        /* --- SIATKA MIEJSC --- */
+        #seat-grid { width: 100%; height: auto; position: relative; z-index: 20; padding: 180px 30px 100px 30px; display: flex; flex-direction: column; gap: 40px; }
+        .seat-row { display: flex; justify-content: center; align-items: center; width: 100%; gap: 15px; }
+        .seat-group { display: flex; gap: 8px; }
+
+        /* --- FOTELE STANDARD (Tech-Mesh) --- */
+        .seat-2d {
+            width: 40px; height: 45px; border-radius: 6px 6px 10px 10px; background-color: #0f0f12;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(145deg, rgba(30, 30, 35, 0.6) 0%, rgba(10, 10, 12, 0.8) 100%); background-size: 3px 3px, 100% 100%;
+            border: 1px solid rgba(255, 255, 255, 0.05); border-top: 1px solid rgba(255, 255, 255, 0.2); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8); position: relative; display: flex; justify-content: center; align-items: center; transition: all 0.4s cubic-bezier(0.85, 0, 0.15, 1); opacity: 1; 
+        }
+        .seat-2d::before { content: ''; position: absolute; bottom: -1px; left: 10%; width: 80%; height: 8px; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 2px, transparent 2px, transparent 4px), rgba(30, 30, 35, 0.9); border-radius: 4px; border-bottom: 2px solid rgba(255, 255, 255, 0.2); z-index: 2; }
+        .seat-2d::after { content: ''; position: absolute; bottom: 5%; left: -3px; width: calc(100% + 4px); height: 80%; border-left: 2px solid rgba(255, 255, 255, 0.1); border-right: 2px solid rgba(255, 255, 255, 0.1); border-radius: 2px; z-index: 2;}
+        .scan-layer { position: absolute; top: -10px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #e2c275, transparent); opacity: 0; transition: opacity 0.3s; z-index: 10; pointer-events: none; box-shadow: 0 0 10px #e2c275; clip-path: inset(0 -4px 0 -4px); }
+        .seat-2d.occupied:hover .scan-layer { opacity: 1; animation: scan-line 2s linear infinite; }
+        @keyframes scan-line { 0% { top: -10%; } 100% { top: 110%; } }
+
+        /* --- FOTELE VIP (Carbon Fiber) --- */
+        .seat-2d.vip { 
+            width: 58px; height: 68px; border-radius: 8px 8px 14px 14px; background: linear-gradient(145deg, #111 0%, #050505 100%); 
+            border-left: 1px dashed rgba(226, 194, 117, 0.4); border-right: 1px dashed rgba(226, 194, 117, 0.4); border-top: 1px solid rgba(226, 194, 117, 0.4); border-bottom: 1px solid rgba(226, 194, 117, 0.15); box-shadow: 0 12px 25px rgba(0,0,0,0.95), inset 0 2px 5px rgba(226, 194, 117,0.05); overflow: hidden; 
+        }
+        .seat-2d.vip::before { 
+            content: ''; position: absolute; background-color: #131313; background: linear-gradient(27deg, #151515 5px, transparent 5px) 0 5px, linear-gradient(207deg, #151515 5px, transparent 5px) 10px 0px, linear-gradient(27deg, #222 5px, transparent 5px) 0px 10px, linear-gradient(207deg, #222 5px, transparent 5px) 10px 5px, linear-gradient(90deg, #1b1b1b 10px, transparent 10px), linear-gradient(#1d1d1d 25%, #1a1a1a 25%, #1a1a1a 50%, transparent 50%, transparent 75%, #242424 75%, #242424 100%); background-size: 20px 20px;
+            border-radius: 4px; top: 6px; left: 12%; width: 76%; height: 30px; border-bottom: 1px dashed rgba(226, 194, 117, 0.3); border-top: 2px solid rgba(0,0,0,1); box-shadow: inset 0 -6px 12px rgba(0,0,0,0.6);
+        }
+        .seat-2d.vip::after { 
+            content: ''; position: absolute; bottom: 5px; left: 20%; width: 60%; height: 12px; background: linear-gradient(0deg, #1f1c17 0%, #0d0b09 100%); border-radius: 6px; border: 1px solid rgba(0,0,0,0.8); border-bottom: 1px solid rgba(226, 194, 117, 0.2); box-shadow: 0 -4px 8px rgba(0,0,0,0.6), inset 0 -1px 2px rgba(255,255,255,0.02); transform: none; 
+        }
+        .seat-id { font-weight: 500; font-size: 9px; color: rgba(255, 255, 255, 0.2); z-index: 5; transition: 0.3s; position: relative; }
+        .seat-2d.vip .seat-id { position: absolute; bottom: 22px; color: rgba(226, 194, 117, 0.3); font-size: 10px; margin: 0; z-index: 5; }
+
+        .seat-2d.occupied { background-color: #1a1a24; background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px), linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%); border-color: rgba(255, 255, 255, 0.2); border-top: 1px solid #fff; box-shadow: 0 5px 20px rgba(255, 255, 255, 0.1), inset 0 2px 10px rgba(255, 255, 255, 0.05); }
+        .seat-2d.occupied::before { border-bottom-color: #fff; background: rgba(255, 255, 255, 0.8); box-shadow: 0 0 10px #fff; }
+        .seat-2d.occupied::after { border-color: rgba(255,255,255,0.4); }
+        .seat-2d.occupied .seat-id { opacity: 0; } 
+        .seat-2d.vip.occupied { background: linear-gradient(145deg, #1a150c 0%, #0a0805 100%); border-color: rgba(226, 194, 117, 0.5); border-top: 1px solid #e2c275; box-shadow: 0 12px 25px rgba(0,0,0,0.95), 0 -2px 25px rgba(226, 194, 117, 0.2), inset 0 2px 15px rgba(226, 194, 117, 0.15); }
+        .seat-2d.vip.occupied::before { border-bottom: 1px dashed rgba(226, 194, 117, 0.8); border-top: 2px solid rgba(0,0,0,1); box-shadow: inset 0 -6px 12px rgba(0,0,0,0.8); }
+        .seat-2d.vip.occupied::after { background: linear-gradient(0deg, #2a2215 0%, #120e08 100%); border: none; border-bottom: 2px solid #e2c275; box-shadow: 0 0 12px #e2c275, 0 0 25px rgba(226, 194, 117, 0.6), inset 0 -1px 3px rgba(226, 194, 117, 0.3), 0 -4px 8px rgba(0,0,0,0.8); border-radius: 6px; width: 60%; height: 12px; left: 20%; bottom: 5px; top: auto; }
+
+        .hover-tag { position: absolute; left: 140%; top: 50%; transform: translateY(-50%); background: rgba(10, 12, 15, 0.95); border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 6px; font-family: 'Inter', sans-serif; color: #fff; white-space: nowrap; pointer-events: none; z-index: 50; box-shadow: 0 10px 30px rgba(0,0,0,0.9); opacity: 0; visibility: hidden; transition: all 0.4s cubic-bezier(0.85, 0, 0.15, 1); }
+        .left-side .hover-tag { left: auto; right: 140%; }
+        .hover-tag strong { color: #ffffff; font-weight: 600; font-size: 11px; letter-spacing: 1px; display: block; margin-bottom: 2px; text-transform: uppercase; }
+        .hover-tag span { color: rgba(255,255,255,0.5); font-size: 8px; font-weight: 400; text-transform: uppercase; letter-spacing: 1px; }
+        .seat-2d.vip .hover-tag { border-color: rgba(226, 194, 117, 0.2); }
+        .seat-2d.vip .hover-tag strong { color: #e2c275; }
+        .seat-2d.occupied:hover .hover-tag { opacity: 1; visibility: visible; transform: translateY(-50%) translateX(10px); }
+        .left-side.occupied:hover .hover-tag { transform: translateY(-50%) translateX(-10px); }
+        .seat-2d.occupied:hover { cursor: pointer !important; transform: scale(1.08) translateZ(15px); filter: brightness(1.2); box-shadow: 0 15px 30px rgba(0,0,0,0.9), 0 0 15px rgba(255,255,255,0.2); z-index: 30; }
+        .seat-2d.vip.occupied:hover { border-top: 1px solid #e2c275; box-shadow: 0 15px 30px rgba(0,0,0,0.95), 0 -4px 35px rgba(226, 194, 117, 0.5); }
+
+        /* --- MODALE --- */
+        .edupass-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.5s cubic-bezier(0.85, 0, 0.15, 1); perspective: 1200px; }
+        .edupass-overlay.active { opacity: 1; pointer-events: all; }
+        .edupass-3d-wrapper { transform-style: preserve-3d; transition: transform 0.1s ease-out; }
+
+        .edupass-glass-card { background: rgba(10, 10, 12, 0.65); backdrop-filter: blur(40px) saturate(120%); -webkit-backdrop-filter: blur(40px) saturate(120%); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.05); border-top: 1px solid rgba(226, 194, 117, 0.6); box-shadow: 0 50px 100px -20px rgba(0,0,0,1), inset 0 1px 10px rgba(255,255,255,0.05); position: relative; overflow: hidden; color: #fff; transform: translateY(60px) scale(0.9) translateZ(0); transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1), opacity 0.6s; opacity: 0; }
+        .edupass-overlay.active .edupass-glass-card { transform: translateY(0) scale(1) translateZ(50px); opacity: 1; }
+        .edupass-card { width: 580px; padding: 40px 50px; }
+        .edupass-glare { content: ''; position: absolute; top: -100%; left: -100%; width: 300%; height: 300%; background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0.1) 48%, rgba(255,255,255,0.02) 50%, transparent 60%); pointer-events: none; z-index: 1; transform: rotate(15deg); transition: transform 0.1s ease-out; }
+        .pass-top { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 20px; margin-bottom: 30px; position: relative; z-index: 2; transform: translateZ(20px); }
+        .pass-header h2 { font-weight: 300; font-size: 16px; color: #fff; letter-spacing: 6px; margin: 0; line-height: 1; }
+        .pass-header p { font-weight: 500; font-size: 7px; color: rgba(255,255,255,0.5); letter-spacing: 4px; margin-top: 8px; text-transform: none; }
+        .pass-header-right { text-align: right; }
+        .pass-header-right .doc-code { font-weight: 400; font-size: 11px; color: #e2c275; letter-spacing: 3px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+        .pass-bio-section { display: flex; gap: 40px; position: relative; z-index: 2; transform: translateZ(30px); } 
+        .pass-photo-area { width: 120px; height: 160px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0, 0, 0, 0.6); border-bottom: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; position: relative; display: flex; justify-content: center; align-items: center; box-shadow: inset 0 10px 30px rgba(0,0,0,0.8); }
+        .pass-photo-area span { font-weight: 500; font-size: 8px; color: rgba(255,255,255,0.3); letter-spacing: 2px; text-align: center; text-transform: uppercase;}
+        .pass-data-grid { flex-grow: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 15px 25px; }
+        .data-block { display: flex; flex-direction: column; }
+        .data-label { font-weight: 500; font-size: 7px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+        .data-val { font-weight: 400; font-size: 13px; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
+        .data-val.gold { color: #e2c275; font-weight: 500; }
+        .mrz-zone { margin-top: 40px; background: transparent; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 15px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 2px; line-height: 2; word-break: break-all; position: relative; z-index: 2; transform: translateZ(10px); }
+        .close-btn { position: absolute; top: 25px; right: 30px; background: none; border: none; color: rgba(255,255,255,0.4); font-family: 'Inter', sans-serif; font-weight: 300; font-size: 20px; cursor: pointer; transition: color 0.3s; z-index: 20; }
+        .close-btn:hover { color: #fff; }
+
+        .confirm-glass-card { background: rgba(245, 245, 247, 0.85); backdrop-filter: blur(40px) saturate(200%); -webkit-backdrop-filter: blur(40px) saturate(200%); border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 40px 80px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.8); position: relative; overflow: hidden; color: #1d1d1f; transform: translateY(60px) scale(0.9) translateZ(0); transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1), opacity 0.6s; opacity: 0; }
+        .edupass-overlay.active .confirm-glass-card { transform: translateY(0) scale(1) translateZ(50px); opacity: 1; }
+        .confirm-card { width: 380px; padding: 40px; text-align: center; }
+        .confirm-title { font-weight: 600; font-size: 18px; color: #1d1d1f; letter-spacing: 0px; margin-bottom: 12px; }
+        .confirm-desc { font-weight: 400; font-size: 13px; color: #86868b; letter-spacing: 0px; line-height: 1.5; margin-bottom: 35px; }
+        .confirm-actions { display: flex; justify-content: center; gap: 15px; }
+        .btn-check { border: none; border-radius: 20px; padding: 14px 28px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: 0px; cursor: pointer; transition: 0.2s; }
+        .btn-check.cancel { background: rgba(0,0,0,0.05); color: #1d1d1f; }
+        .btn-check.cancel:hover { background: rgba(0,0,0,0.1); }
+        .btn-check.proceed { background: #1d1d1f; color: #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+        .btn-check.proceed:hover { transform: scale(1.02); box-shadow: 0 12px 25px rgba(0,0,0,0.25); }
+
+        /* KURSOR */
+        #radar-cursor { position: fixed; width: 30px; height: 30px; border: 1px solid rgba(226, 194, 117, 0.5); border-radius: 50%; pointer-events: none; z-index: 10000; background: transparent; display: flex; justify-content: center; align-items: center; transition: width 0.2s, height 0.2s, background 0.2s; }
+        #radar-cursor::after { content: ''; width: 2px; height: 2px; background: #e2c275; border-radius: 50%; }
+        body.hovering-interactive #radar-cursor { width: 45px; height: 45px; border: 1px dashed rgba(255, 255, 255, 0.6); background: rgba(255,255,255,0.05); }
+        body.hovering-interactive #radar-cursor::after { background: #fff; }
+
+        @media (max-width: 1024px) {
+            .hud-header { left: 30px; top: 30px; } .hud-telemetry { left: 30px; bottom: 30px; gap: 20px; } .hud-stats { right: 30px; bottom: 30px; }
+        }
+        @media (max-width: 768px) {
+            .fuselage-2d { transform: scale(0.85); } .hud-header h1 { font-size: 18px; letter-spacing: 6px; } .hud-telemetry { bottom: 100px; flex-direction: column; gap: 10px; border-left: none; padding-left: 0; } .hud-telemetry::after { display: none; } .hud-stats { bottom: 100px; } .action-panel { bottom: 30px; } .edupass-card { width: 90vw; padding: 30px 25px; } .pass-bio-section { gap: 20px; } .pass-data-grid { gap: 10px; } .data-val { font-size: 13px; } .confirm-card { width: 90vw; padding: 30px 20px; }
+            .trans-title { font-size: 36px; letter-spacing: 10px; margin-right: -10px; }
+            #radar-cursor { display: none; } * { cursor: auto !important; }
+        }
+        @media (max-width: 480px) {
+            .scroll-area { padding-top: 80px; } .fuselage-2d { transform: scale(0.68); } .hud-header { left: 15px; top: 15px; } .hud-telemetry { left: 15px; bottom: 90px; } .hud-stats { right: 15px; bottom: 90px; } .pass-bio-section { flex-direction: column; align-items: center; } .mrz-zone { font-size: 8px; line-height: 1.6; word-break: break-all; margin-top: 20px;}
+            .trans-title { font-size: 28px; letter-spacing: 8px; margin-right: -8px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="radar-cursor"></div>
+
+    <div class="transition-screen">
+        <h1 class="trans-title" data-text="EduAir">EduAir</h1>
+        <p class="trans-subtitle">pilot your potential</p>
+    </div>
+
+    <div class="scenic-bg" id="bg-layer"></div>
+    <div class="vignette"></div>
+    <div class="noise-overlay"></div>
+
+    <div class="hud-header" id="hud-top">
+        <h1>EduAir<span style="color: #e2c275;">.</span></h1>
+        <div class="hud-subtitle"><div class="recording-dot"></div>AIRCRAFT STRUCTURAL BLUEPRINT</div>
+    </div>
+
+    <div class="hud-telemetry" id="hud-left">
+        <div class="telemetry-block">
+            <span class="tel-label">ALTITUDE</span>
+            <span class="tel-value" id="hud-alt">0 FT</span>
+            <div class="thrust-bar"><div class="thrust-fill" id="bar-alt"></div></div>
+        </div>
+        <div class="telemetry-block">
+            <span class="tel-label">SPEED</span>
+            <span class="tel-value" id="hud-spd">M 0.00</span>
+            <div class="thrust-bar"><div class="thrust-fill" id="bar-spd"></div></div>
+        </div>
+        <div class="telemetry-block">
+            <span class="tel-label">OAT</span>
+            <span class="tel-value" id="hud-temp">0°C</span>
+            <div class="thrust-bar"><div class="thrust-fill" id="bar-temp"></div></div>
+        </div>
+    </div>
+
+    <div class="hud-stats" id="hud-right">
+        <div class="stat-label">SOULS ON BOARD</div>
+        <div style="color: #fff; font-size: 24px; letter-spacing: 2px; font-weight: 300;"><span id="pax-count">0</span><span style="font-size: 12px; color:rgba(255,255,255,0.3)"> / 46</span></div>
+        <div style="margin-top: 15px; font-size: 8px; font-weight: 500; color: #00ff88; letter-spacing: 3px;"><span style="display:inline-block; width: 6px; height: 6px; background: #00ff88; border-radius: 50%; margin-right: 5px; box-shadow: 0 0 10px #00ff88;"></span>SYSTEM ONLINE</div>
+    </div>
+
+    <div class="action-panel" id="action-panel">
+        <button class="takeoff-btn" id="takeoffBtn" onmouseenter="document.body.classList.add('hovering-interactive')" onmouseleave="document.body.classList.remove('hovering-interactive')">
+            <div class="hold-progress" id="holdProgress"></div>
+            <span class="btn-text" id="btnText">INITIATE TAKEOFF</span>
+        </button>
+    </div>
+
+    <div class="scroll-area" id="main-scroll-area">
+        <div id="airplane-layer" style="width: 100%; display: flex; justify-content: center; transform-style: preserve-3d; will-change: transform;">
+            <div class="fuselage-2d">
+                <div class="led-strip left"></div>
+                <div class="led-strip right"></div>
+
+                <div class="door-exit left door-top"></div>
+                <div class="door-exit right door-top"></div>
+                <div class="door-exit left door-bottom"></div>
+                <div class="door-exit right door-bottom"></div>
+
+                <div class="cockpit-window"></div>
+                <div class="cockpit-label">FLIGHT DECK</div>
+                <div class="radome-line"></div>
+                <div class="fuselage-center-line"></div>
+                
+                <div id="seat-grid"></div>
+
+                <div class="strobe-light"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edupass-modal" class="edupass-overlay">
+        <div class="edupass-3d-wrapper" id="pass-3d-wrap">
+            <div class="edupass-glass-card edupass-card">
+                <div class="edupass-glare" id="pass-glare"></div>
+                <button class="close-btn" onclick="closeEduPass()" onmouseenter="document.body.classList.add('hovering-interactive')" onmouseleave="document.body.classList.remove('hovering-interactive')">✕</button>
+                
+                <div class="pass-top">
+                    <div class="pass-header">
+                        <h2>EDUPASS</h2>
+                        <p>IDENTITY CREDENTIAL</p>
+                    </div>
+                    <div class="pass-header-right">
+                        <div class="doc-code" id="pass-no">EA-000000</div>
+                    </div>
+                </div>
+
+                <div class="pass-bio-section">
+                    <div class="pass-photo-area">
+                        <span>BIO-ID<br>PENDING</span>
+                    </div>
+                    
+                    <div class="pass-data-grid">
+                        <div class="data-block" style="grid-column: span 2;">
+                            <div class="data-label">Surname / Nazwisko</div>
+                            <div class="data-val" id="pass-surname">DOE</div>
+                        </div>
+                        <div class="data-block" style="grid-column: span 2;">
+                            <div class="data-label">Given Names / Imiona</div>
+                            <div class="data-val" id="pass-firstname">JOHN</div>
+                        </div>
+                        <div class="data-block">
+                            <div class="data-label">Nationality</div>
+                            <div class="data-val" style="color: rgba(255,255,255,0.7);">POL</div>
+                        </div>
+                        <div class="data-block">
+                            <div class="data-label">Clearance</div>
+                            <div class="data-val gold" id="pass-class">3A</div>
+                        </div>
+                        <div class="data-block">
+                            <div class="data-label">Issued</div>
+                            <div class="data-val" style="color: rgba(255,255,255,0.7);">01 SEP 2024</div>
+                        </div>
+                        <div class="data-block">
+                            <div class="data-label">Flight XP</div>
+                            <div class="data-val">1,240</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mrz-zone" id="pass-mrz">
+                    P&lt;POLLASTNAME&lt;&lt;FIRSTNAME&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br>
+                    EA12345678POL0501019M2509014&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;02
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="edupass-overlay">
+        <div class="confirm-glass-card confirm-card">
+            <h2 class="confirm-title">Flight Clearance</h2>
+            <p class="confirm-desc">Are you sure you want to initiate takeoff?<br>This action will close the cabin doors.</p>
+            <div class="confirm-actions">
+                <button class="btn-check cancel" onclick="cancelTakeoff()" onmouseenter="document.body.classList.add('hovering-interactive')" onmouseleave="document.body.classList.remove('hovering-interactive')">Cancel</button>
+                <button class="btn-check proceed" onclick="executeTakeoff()" onmouseenter="document.body.classList.add('hovering-interactive')" onmouseleave="document.body.classList.remove('hovering-interactive')">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+    <script>
+        const grid = document.getElementById('seat-grid');
+        const paxCountEl = document.getElementById('pax-count');
+        const modal = document.getElementById('edupass-modal');
+        const passWrap = document.getElementById('pass-3d-wrap');
+        const passGlare = document.getElementById('pass-glare');
+        const confirmModal = document.getElementById('confirm-modal');
+        const takeoffBtn = document.getElementById('takeoffBtn');
+        const scrollArea = document.getElementById('main-scroll-area');
+        
+        let currentPax = 0;
+        let isModalOpen = false;
+        let isTakingOff = false;
+
+        // --- AUDIO ENGINE ---
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playHoverSound() {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(3000, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        // Aktywacja audio przy pierwszym kliknięciu gdziekolwiek
+        document.addEventListener('click', initAudio, { once: true });
+
+        function buildSeatMap() {
+            let htmlContent = '';
+            for(let i=1; i<=3; i++) {
+                htmlContent += `<div class="seat-row"><div class="seat-2d vip left-side" id="seat-${i}A"><div class="scan-layer"></div><div class="seat-id">${i}A</div><div class="hover-tag"><strong>Name</strong><span>CLASS: VIP</span></div></div><div style="width: 60px;"></div><div class="seat-2d vip right-side" id="seat-${i}B"><div class="scan-layer"></div><div class="seat-id">${i}B</div><div class="hover-tag"><strong>Name</strong><span>CLASS: VIP</span></div></div></div>`;
+            }
+            htmlContent += `<div style="width: 100%; text-align: center; font-weight: 500; font-size: 8px; color: rgba(255,255,255,0.2); letter-spacing: 6px; margin: 25px 0;">MAIN CABIN</div>`;
+            let rowNum = 4;
+            
+            for(let i=0; i<10; i++) {
+                htmlContent += `<div class="seat-row"><div class="seat-group left-side"><div class="seat-2d" id="seat-${rowNum}A"><div class="scan-layer"></div><div class="seat-id">${rowNum}A</div><div class="hover-tag"><strong>Name</strong><span>CLASS: 3A</span></div></div><div class="seat-2d" id="seat-${rowNum}B"><div class="scan-layer"></div><div class="seat-id">${rowNum}B</div><div class="hover-tag"><strong>Name</strong><span>CLASS: 3A</span></div></div></div><div style="width: 30px;"></div><div class="seat-group right-side"><div class="seat-2d" id="seat-${rowNum}C"><div class="scan-layer"></div><div class="seat-id">${rowNum}C</div><div class="hover-tag"><strong>Name</strong><span>CLASS: 3A</span></div></div><div class="seat-2d" id="seat-${rowNum}D"><div class="scan-layer"></div><div class="seat-id">${rowNum}D</div><div class="hover-tag"><strong>Name</strong><span>CLASS: 3A</span></div></div></div></div>`;
+                rowNum++;
+            }
+            grid.innerHTML = htmlContent;
+        }
+
+        buildSeatMap();
+
+        document.addEventListener('mousemove', (e) => {
+            gsap.to('#radar-cursor', { x: e.clientX - 15, y: e.clientY - 15, duration: 0.1, ease: "power2.out" });
+            
+            if(isTakingOff) return;
+
+            const xPos = (e.clientX / window.innerWidth - 0.5);
+            const yPos = (e.clientY / window.innerHeight - 0.5);
+
+            gsap.to('#bg-layer', { x: xPos * -30, y: yPos * -30, rotationY: xPos * 4, rotationX: -yPos * 4, duration: 2.5, ease: "expo.out" });
+
+            if (!isModalOpen) {
+                gsap.to('#airplane-layer', { x: xPos * 15, y: yPos * 10, rotationY: xPos * 2, rotationX: -yPos * 2, duration: 2, ease: "expo.out" });
+            }
+
+            if (isModalOpen && modal.classList.contains('active')) {
+                const tiltX = (window.innerWidth / 2 - e.clientX) / 60; 
+                const tiltY = (window.innerHeight / 2 - e.clientY) / 60;
+                passWrap.style.transform = `rotateY(${-tiltX}deg) rotateX(${tiltY}deg)`;
+                passGlare.style.transform = `rotate(15deg) translate(${tiltX * 2}%, ${tiltY * 2}%)`;
+            }
+        });
+
+        let holdTween;
+        let isHolding = false;
+        const progressEl = document.getElementById('holdProgress');
+        const btnTextEl = document.getElementById('btnText');
+
+        function openConfirmModal() {
+            if(isTakingOff) return;
+            
+            document.body.classList.remove('hovering-interactive');
+            isModalOpen = true;
+            confirmModal.classList.add('active');
+            gsap.to(scrollArea, { filter: 'blur(8px) brightness(0.5)', duration: 0.5 });
+        }
+
+        function startHold(e) {
+            if(isTakingOff || isModalOpen) return;
+            isHolding = true;
+            
+            btnTextEl.innerText = "HOLDING...";
+            gsap.to(btnTextEl, { color: "#000", duration: 0.3 }); 
+            
+            gsap.to(document.body, { scale: 0.99, duration: 0.3, ease: "expo.out" });
+
+            holdTween = gsap.to(progressEl, {
+                width: "100%",
+                duration: 1.5,
+                ease: "power1.inOut",
+                onComplete: () => {
+                    isHolding = false;
+                    gsap.to(takeoffBtn, { scale: 1, duration: 0.3 });
+                    btnTextEl.innerText = "INITIATE TAKEOFF";
+                    gsap.to(progressEl, { width: "0%", duration: 0 }); 
+                    gsap.to(btnTextEl, { color: "#e2c275", duration: 0.3 });
+                    openConfirmModal();
+                    gsap.to(document.body, { scale: 1, duration: 0.4, ease: "back.out(1.5)" });
+                }
+            });
+            gsap.to(takeoffBtn, { scale: 0.95, duration: 0.3 });
+        }
+
+        function stopHold(e) {
+            if(!isHolding) return;
+            isHolding = false;
+            
+            if(holdTween) holdTween.kill(); 
+            
+            gsap.to(document.body, { scale: 1, duration: 0.3, ease: "expo.out" });
+
+            if(!isTakingOff) {
+                gsap.to(progressEl, { width: "0%", duration: 0.3 });
+                gsap.to(takeoffBtn, { scale: 1, duration: 0.3 });
+                btnTextEl.innerText = "INITIATE TAKEOFF";
+                gsap.to(btnTextEl, { color: "#e2c275", duration: 0.3 });
+            }
+        }
+
+        takeoffBtn.addEventListener('mousedown', startHold);
+        takeoffBtn.addEventListener('touchstart', startHold, {passive: true});
+        
+        window.addEventListener('mouseup', stopHold);
+        window.addEventListener('touchend', stopHold);
+        takeoffBtn.addEventListener('mouseleave', stopHold);
+
+        function cancelTakeoff() {
+            confirmModal.classList.remove('active');
+            isModalOpen = false;
+            document.body.classList.remove('hovering-interactive');
+            gsap.to(scrollArea, { filter: 'blur(0px) brightness(1)', duration: 0.5 });
+        }
+
+        function executeTakeoff() {
+            confirmModal.classList.remove('active');
+            isModalOpen = false;
+            isTakingOff = true;
+            
+            document.body.classList.remove('hovering-interactive');
+            
+            btnTextEl.innerText = "ENGAGING...";
+            takeoffBtn.classList.add('engaged');
+            takeoffBtn.style.pointerEvents = "none";
+            progressEl.style.width = "100%"; 
+            btnTextEl.style.color = "#000";
+
+            scrollArea.style.overflow = 'hidden';
+            scrollArea.style.pointerEvents = 'none'; 
+
+            const tl = gsap.timeline();
+
+            tl.to(['#hud-top', '#hud-left', '#hud-right', '#action-panel'], { 
+                opacity: 0, y: 40, duration: 3, ease: "power2.inOut", stagger: 0.2 
+            }, 0);
+
+            tl.to('#bg-layer', { 
+                scale: 1.15, filter: 'brightness(0.1) contrast(1.1) blur(30px)', duration: 6, ease: "power2.inOut" 
+            }, 0);
+
+            tl.to('#airplane-layer', { 
+                z: -1200, y: 300, rotationX: 25, opacity: 0, duration: 5.5, ease: "power2.inOut" 
+            }, 0.5);
+            
+            tl.to('.transition-screen', { 
+                opacity: 1, pointerEvents: 'all', duration: 3, ease: "power2.inOut" 
+            }, "-=2.5");
+            
+            tl.to(['.trans-title', '.trans-subtitle'], { 
+                opacity: 1, y: 0, scale: 1, duration: 4, stagger: 0.8, ease: "power3.out" 
+            }, "-=1.5");
+
+            tl.to('.trans-title', { '--shimmer-opacity': 1, duration: 1.5, ease: "power2.inOut" }, "-=0.5")
+              .to('.trans-title', { '--shimmer-pos': '-50%', duration: 4.5, ease: "power1.inOut" }, "+=0.2")
+              .to('.trans-title', { '--shimmer-opacity': 0, duration: 2, ease: "power2.inOut" }, "-=0.5");
+
+            tl.call(() => {
+                console.log("Transition complete. Ready to move to Screen 2 (Briefing/Radar).");
+                // window.location.href = 'ekran2.html';
+            });
+        }
+
+        function assignSeat(studentName, studentClass, isVIP = false) {
+            const selector = isVIP ? '.seat-2d.vip:not(.occupied)' : '.seat-2d:not(.vip):not(.occupied)';
+            const emptySeats = document.querySelectorAll(selector);
+            
+            if(emptySeats.length > 0) {
+                const target = emptySeats[Math.floor(Math.random() * emptySeats.length)];
+                target.querySelector('.hover-tag strong').innerText = studentName;
+                target.querySelector('.hover-tag span').innerText = 'CLASS: ' + studentClass;
+                
+                target.addEventListener('click', () => openEduPass(studentName, studentClass, isVIP));
+                target.addEventListener('mouseenter', () => { 
+                    document.body.classList.add('hovering-interactive');
+                    playHoverSound();
+                });
+                target.addEventListener('mouseleave', () => document.body.classList.remove('hovering-interactive'));
+
+                target.classList.add('occupied');
+                
+                currentPax++;
+                paxCountEl.innerText = currentPax;
+
+                gsap.fromTo(target, 
+                    { scale: 1.05, filter: 'brightness(2)' }, 
+                    { scale: 1, filter: 'brightness(1)', duration: 1.5, ease: "expo.out" }
+                );
+            }
+        }
+
+        function openEduPass(fullName, className, isVIP) {
+            if(isTakingOff) return;
+            initAudio();
+            isModalOpen = true;
+            document.body.classList.remove('hovering-interactive'); 
+            
+            const nameParts = fullName.split(' ');
+            let firstName = nameParts[0] || '';
+            let lastName = nameParts.slice(1).join(' ') || '';
+            
+            if(firstName === "CEO" || firstName === "VIP:") {
+                firstName = nameParts[1] || '';
+                lastName = nameParts.slice(2).join(' ') || nameParts[1];
+            }
+
+            document.getElementById('pass-firstname').innerText = firstName.toUpperCase();
+            document.getElementById('pass-surname').innerText = lastName.toUpperCase();
+            
+            const classDisplay = document.getElementById('pass-class');
+            classDisplay.innerText = className;
+            classDisplay.style.color = isVIP ? '#e2c275' : '#fff';
+
+            const randomNum = Math.floor(Math.random() * 9000000) + 1000000;
+            document.getElementById('pass-no').innerText = 'EA-' + randomNum;
+
+            const mrzFirst = `P<POL${lastName.toUpperCase()}<<${firstName.toUpperCase()}`.padEnd(44, '<');
+            const mrzSecond = `EA${randomNum}8POL0501019M2509014<<<<<<<<<<<<<<02`;
+            document.getElementById('pass-mrz').innerHTML = `${mrzFirst}<br>${mrzSecond}`;
+
+            modal.classList.add('active');
+            gsap.to(scrollArea, { filter: 'blur(8px) brightness(0.5)', duration: 0.5 });
+        }
+
+        function closeEduPass() {
+            isModalOpen = false;
+            modal.classList.remove('active');
+            passWrap.style.transform = `rotateY(0deg) rotateX(0deg)`; 
+            gsap.to(scrollArea, { filter: 'blur(0px) brightness(1)', duration: 0.5 });
+        }
+
+        setInterval(() => {
+            const alt = document.getElementById('hud-alt');
+            let currentAlt = parseInt(alt.innerText.replace(/,/g, '').replace(' FT', ''));
+            let fluctuation = Math.floor(Math.random() * 40) - 20; 
+            let newAlt = currentAlt + fluctuation;
+
+            gsap.to({ val: currentAlt }, {
+                val: newAlt,
+                duration: 1.5,
+                ease: "expo.out",
+                onUpdate: function() {
+                    alt.innerText = Math.round(this.targets()[0].val).toLocaleString('en-US') + ' FT';
+                }
+            });
+
+            const temp = document.getElementById('hud-temp');
+            if(Math.random() > 0.8) {
+                let currentTemp = parseInt(temp.innerText.replace('°C', ''));
+                temp.innerText = (currentTemp + (Math.random() > 0.5 ? 1 : -1)) + '°C';
+            }
+        }, 3000);
+
+        window.onload = () => {
+            const tl = gsap.timeline();
+            
+            tl.from('#bg-layer', { scale: 1.1, opacity: 0, duration: 3, ease: "expo.out" })
+              .from(scrollArea, { opacity: 0, y: 150, duration: 2, ease: "expo.out" }, "-=2.0")
+              .fromTo('.seat-2d', 
+                  { opacity: 0, y: 15 }, 
+                  { opacity: 1, y: 0, stagger: 0.02, duration: 1.2, ease: "back.out(1.2)" }, 
+              "-=1.5")
+              .from(['#hud-top', '#hud-left', '#hud-right', '#action-panel'], { opacity: 0, y: 20, duration: 1.5, stagger: 0.1, ease: "expo.out" }, "-=1.0");
+
+            const altStat = document.getElementById('hud-alt');
+            const spdStat = document.getElementById('hud-spd');
+            const tempStat = document.getElementById('hud-temp');
+            
+            gsap.to({ a: 0, s: 0, t: 0 }, {
+                a: 45000, s: 0.92, t: -54,
+                duration: 2.5,
+                ease: "expo.out",
+                delay: 0.5,
+                onUpdate: function() {
+                    altStat.innerText = Math.round(this.targets()[0].a).toLocaleString('en-US') + ' FT';
+                    spdStat.innerText = 'M ' + this.targets()[0].s.toFixed(2);
+                    tempStat.innerText = Math.round(this.targets()[0].t) + '°C';
+                }
+            });
+
+            gsap.to('#bar-alt', { width: "85%", duration: 2.5, ease: "expo.out", delay: 0.5 });
+            gsap.to('#bar-spd', { width: "92%", duration: 2.5, ease: "expo.out", delay: 0.5 });
+            gsap.to('#bar-temp', { width: "40%", duration: 2.5, ease: "expo.out", delay: 0.5 });
+
+            // Symulacja ładowania pasażerów/modułów
+            setTimeout(() => assignSeat("BIOLOGY SECTOR", "VIP MODULE", true), 2500);
+            setTimeout(() => assignSeat("PHYSICS SECTOR", "VIP MODULE", true), 3200);
+            setTimeout(() => assignSeat("Anna Zdun", "ADVANCED BIO", false), 3800);
+            setTimeout(() => assignSeat("Julia Boruch", "ADVANCED BIO", false), 4500);
+            setTimeout(() => assignSeat("Adam Kowalski", "CORE SCIENCES", false), 5200);
+        };
+    </script>
+</body>
+</html>

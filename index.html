@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduAir - Cinematic Clean Night</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Lexend+Peta:wght@300;400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+
+        body {
+            background-color: #000; color: #fff;
+            font-family: 'Montserrat', sans-serif; overflow: hidden; -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.85) 120%);
+            pointer-events: none; z-index: 9996;
+        }
+
+        #fade-overlay {
+            position: fixed; inset: 0; background-color: #000;
+            z-index: 9995; opacity: 0; pointer-events: none;
+        }
+
+        #custom-cursor { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 99999; }
+        .cursor-visual {
+            position: relative; width: 32px; height: 32px;
+            border: 1px solid rgba(212, 175, 55, 0.7); border-radius: 50%;
+            transform: translate(-50%, -50%); display: flex; justify-content: center; align-items: center;
+            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                        border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease, backdrop-filter 0.4s ease,
+                        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+        }
+        .cursor-visual::after {
+            content: ''; width: 4px; height: 4px; background-color: #d4af37; border-radius: 50%;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        body.cursor-hover .cursor-visual {
+            width: 64px; height: 64px; border-radius: 12px; 
+            background-color: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 1);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            transform: translate(-50%, -50%) rotate(45deg); 
+        }
+        body.cursor-hover .cursor-visual::after { opacity: 0; transform: scale(0); }
+
+        body::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Dissolve_Noise_Texture.png');
+            opacity: 0.03; pointer-events: none; z-index: 9997;
+            mix-blend-mode: overlay; animation: noise 0.2s infinite;
+        }
+        @keyframes noise { 0% { background-position: 0 0; } 50% { background-position: 100% 100%; } 100% { background-position: 0 0; } }
+
+        #webgl-container { position: absolute; inset: 0; z-index: 1; }
+
+        .ui-layer {
+            position: absolute; inset: 0; z-index: 10; pointer-events: none;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 50px 70px; opacity: 0; 
+        }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; }
+        
+        .logo-container { display: flex; flex-direction: column; position: relative; }
+        .logo { 
+            font-family: 'Lexend Peta', sans-serif; font-weight: 300; font-size: 24px; letter-spacing: 12px; 
+            background: linear-gradient(110deg, #ffffff 35%, #d4af37 48%, #ffffff 50%, #d4af37 52%, #ffffff 65%);
+            background-size: 300% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: metallicSweep 5s infinite; filter: blur(0px);
+        }
+        
+        @keyframes metallicSweep {
+            0% { background-position: 200% center; }
+            25% { background-position: -100% center; }
+            100% { background-position: -100% center; }
+        }
+        
+        .logo-sub {
+            font-family: 'Space Mono', monospace; font-size: 7.5px;
+            color: rgba(255, 255, 255, 0.5); margin-top: 6px;
+            padding-left: 2px; opacity: 0; white-space: nowrap; 
+        }
+
+        .logo-flare {
+            position: absolute; top: 12px; left: -50%; width: 150px; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), #d4af37, transparent);
+            box-shadow: 0 0 10px #d4af37, 0 0 20px #d4af37; mix-blend-mode: screen;
+            pointer-events: none; opacity: 0; transform: scaleX(0);
+        }
+
+        /* --- PRAWY GÓRNY RÓG (POWRÓT + STATUS) --- */
+        .top-right-group {
+            display: flex; flex-direction: column; align-items: flex-end; gap: 15px; pointer-events: auto;
+        }
+
+        .back-edunity-btn {
+            background: transparent; color: rgba(255, 255, 255, 0.6); 
+            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px;
+            font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px;
+            padding: 10px 20px; transition: all 0.3s ease; backdrop-filter: blur(5px);
+            cursor: pointer !important; text-transform: uppercase;
+        }
+        .back-edunity-btn:hover {
+            color: #fff; border-color: rgba(212, 175, 55, 0.6);
+            background: rgba(212, 175, 55, 0.1); box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .status-panel {
+            font-family: 'Space Mono', monospace; font-size: 10px; color: #d4af37; 
+            text-align: right; letter-spacing: 3px; line-height: 1.8; opacity: 0.9;
+            pointer-events: none;
+        }
+
+        /* --- CENTRALNE PRZYCISKI AKCJI --- */
+        .action-buttons-wrapper {
+            align-self: center; margin-bottom: 2vh;
+            display: flex; gap: 20px; pointer-events: auto;
+        }
+
+        .btn-engage {
+            padding: 18px 45px; background: transparent; color: #fff; 
+            border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px);
+            font-family: 'Montserrat', sans-serif; font-weight: 300; letter-spacing: 6px; font-size: 11px;
+            cursor: pointer !important; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            text-transform: uppercase; position: relative; overflow: hidden;
+        }
+        .btn-engage::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent); transition: all 0.6s ease;
+        }
+        .btn-engage:hover {
+            border-color: #d4af37; color: #d4af37;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.2) inset;
+            transform: translateY(-2px); letter-spacing: 8px;
+        }
+        .btn-engage:hover::before { left: 100%; }
+
+        .btn-engage.secondary {
+            border-color: rgba(212, 175, 55, 0.3); color: rgba(255, 255, 255, 0.7);
+        }
+        .btn-engage.secondary:hover {
+            border-color: #d4af37; color: #d4af37; background: rgba(212, 175, 55, 0.05);
+        }
+
+        /* --- LOADER --- */
+        #loader {
+            position: absolute; inset: 0; background: #010101; z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-family: 'Space Mono', monospace; font-size: 11px; color: #d4af37; letter-spacing: 6px;
+            transition: opacity 1.5s ease;
+        }
+        .loader-bar-container {
+            width: 200px; height: 1px; background: rgba(212, 175, 55, 0.1); margin-top: 20px; position: relative;
+        }
+        #loader-bar {
+            position: absolute; top: 0; left: 0; height: 100%; width: 0%;
+            background: #d4af37; box-shadow: 0 0 10px #d4af37; transition: width 0.3s ease;
+        }
+        #force-start {
+            margin-top: 30px; font-family: 'Space Mono', monospace; font-size: 9px; 
+            color: rgba(255,255,255,0.4); text-decoration: underline; cursor: pointer !important;
+            display: none; border: none; background: none;
+        }
+
+        @media (max-width: 768px) {
+            .ui-layer { padding: 30px 20px; } 
+            .logo { font-size: 16px; letter-spacing: 8px; } 
+            .action-buttons-wrapper { flex-direction: column; gap: 12px; width: 100%; }
+            .btn-engage { padding: 16px 20px; font-size: 10px; width: 100%; text-align: center; letter-spacing: 4px;}
+            .btn-engage:hover { letter-spacing: 5px; }
+            .back-edunity-btn { padding: 8px 12px; font-size: 8px; letter-spacing: 1px; }
+            #custom-cursor { display: none; } * { cursor: auto !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="custom-cursor"><div class="cursor-visual"></div></div>
+    <div id="fade-overlay"></div> 
+    
+    <div id="loader">
+        <div id="loader-text">ESTABLISHING SECURE LINK... 0%</div>
+        <div class="loader-bar-container">
+            <div id="loader-bar"></div>
+        </div>
+        <button id="force-start">FORCE INITIATION (BYPASS VISUALS)</button>
+    </div>
+
+    <div id="webgl-container"></div>
+
+    <div class="ui-layer">
+        <div class="header">
+            <div class="logo-container">
+                <div class="logo">EduAir<span style="color: #d4af37;">.</span></div>
+                <div class="logo-sub">PILOT YOUR POTENTIAL</div>
+                <div class="logo-flare"></div>
+            </div>
+            
+            <div class="top-right-group">
+                <button class="back-edunity-btn" id="back-edunity-btn">[<] BACK TO EDUNITY</button>
+                <div class="status-panel">
+                    <span style="color: #666;">ZONE</span> / EXCLUSIVE<br>
+                    <span style="color: #666;">STATUS</span> / SECURED
+                </div>
+            </div>
+        </div>
+        
+        <div class="action-buttons-wrapper">
+            <button class="btn-engage secondary" id="dash-btn">GO TO DASHBOARD</button>
+            <button class="btn-engage" id="config-btn">START CONFIGURATING</button>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { Reflector } from 'three/addons/objects/Reflector.js'; 
+
+        const isMobile = window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent);
+
+        // --- OBSŁUGA DŹWIĘKU ---
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playBoardingSound() {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+            
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.2, now + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + 0.9);
+        }
+
+        // --- INICJALIZACJA KURSORA I SCENY ---
+        const customCursor = document.getElementById('custom-cursor');
+        if (!isMobile) {
+            window.addEventListener('mousemove', (e) => {
+                customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+            });
+        }
+
+        const container = document.getElementById('webgl-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x000000, 0.015); 
+
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 500);
+        camera.position.set(20, 4, 16); 
+
+        const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: false, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2)); 
+        renderer.setClearColor(0x000000);
+        container.appendChild(renderer.domElement);
+
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0.8; bloomPass.strength = 0.35; bloomPass.radius = 0.8;
+
+        const composer = new EffectComposer(renderer);
+        composer.addPass(renderScene); composer.addPass(bloomPass);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; controls.dampingFactor = 0.04;
+        controls.maxPolarAngle = Math.PI / 2 - 0.02; controls.minDistance = 15; controls.maxDistance = 45; 
+        controls.enablePan = false; controls.enabled = false; controls.autoRotate = true; controls.autoRotateSpeed = 0.6; 
+
+        // --- OŚWIETLENIE ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); scene.add(ambientLight);
+        const mainSpot = new THREE.SpotLight(0xffffff, 200); mainSpot.position.set(15, 30, 10); mainSpot.angle = Math.PI / 3; mainSpot.penumbra = 0.9; scene.add(mainSpot);
+        const planeFill = new THREE.HemisphereLight(0xffffff, 0x444455, 3.5); scene.add(planeFill);
+        const topHighlight = new THREE.DirectionalLight(0xffffff, 2.5); topHighlight.position.set(0, 50, -30); scene.add(topHighlight);
+        const leftLight = new THREE.PointLight(0xffffff, 50, 30); leftLight.position.set(-10, 5, 5); scene.add(leftLight);
+        const rightLight = new THREE.PointLight(0xffffff, 50, 30); rightLight.position.set(10, 5, 5); scene.add(rightLight);
+        const frontLight = new THREE.PointLight(0xffffff, 80, 40); frontLight.position.set(0, 5, 15); scene.add(frontLight);
+        const rimLightLeft = new THREE.SpotLight(0xffcc77, 600); rimLightLeft.position.set(-30, 15, -40); rimLightLeft.angle = Math.PI / 4; rimLightLeft.penumbra = 0.8; scene.add(rimLightLeft);
+        const rimLightRight = new THREE.SpotLight(0xffeecc, 500); rimLightRight.position.set(30, 15, -40); rimLightRight.angle = Math.PI / 4; rimLightRight.penumbra = 0.8; scene.add(rimLightRight);
+
+        // --- PODŁOGA Z LUSTREM ---
+        if (!isMobile) {
+            const mirrorGeo = new THREE.PlaneGeometry(500, 500);
+            const mirror = new Reflector(mirrorGeo, { clipBias: 0.003, textureWidth: (window.innerWidth * window.devicePixelRatio) / 2, textureHeight: (window.innerHeight * window.devicePixelRatio) / 2, color: 0x444444 });
+            mirror.rotation.x = -Math.PI / 2; mirror.position.y = -2.01; scene.add(mirror);
+        }
+        
+        const tarmac = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshPhysicalMaterial({ color: 0x010101, roughness: 0.4, metalness: 0.1, transparent: true, opacity: isMobile ? 1.0 : 0.85 }));
+        tarmac.rotation.x = -Math.PI / 2; tarmac.position.y = -2.0; scene.add(tarmac);
+
+        const runwayGroup = new THREE.Group(); runwayGroup.position.y = -1.99; scene.add(runwayGroup);
+
+        const lineGeo = new THREE.PlaneGeometry(0.35, 6); 
+        const lineMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 });
+        for(let i = -60; i < 60; i += 12) { 
+            const line = new THREE.Mesh(lineGeo, lineMat);
+            line.rotation.x = -Math.PI / 2; line.position.set(0, 0.005, i); runwayGroup.add(line);
+        }
+
+        const fixtureGeo = new THREE.CylinderGeometry(0.08, 0.15, 0.1, 8); 
+        const fixtureMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+        const bulbGeo = new THREE.SphereGeometry(0.05, 8, 8); 
+        const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffffff }); 
+
+        const createFlareTexture = () => {
+            const flareCanvas = document.createElement('canvas'); flareCanvas.width = 64; flareCanvas.height = 64;
+            const flareCtx = flareCanvas.getContext('2d'); const flareGrad = flareCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            flareGrad.addColorStop(0, 'rgba(255, 255, 255, 1.0)'); flareGrad.addColorStop(0.15, 'rgba(255, 255, 255, 0.5)'); flareGrad.addColorStop(0.4, 'rgba(200, 200, 200, 0.1)'); flareGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');            
+            flareCtx.fillStyle = flareGrad; flareCtx.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(flareCanvas);
+        };
+        const flareTex = createFlareTexture(); 
+        const flareMat = new THREE.SpriteMaterial({ map: flareTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.7 });
+
+        const groundGlowCanvas = document.createElement('canvas'); groundGlowCanvas.width = 64; groundGlowCanvas.height = 64;
+        const ggCtx = groundGlowCanvas.getContext('2d'); const ggGrad = ggCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        ggGrad.addColorStop(0, 'rgba(255, 255, 255, 0.15)'); ggGrad.addColorStop(1, 'rgba(0, 0, 0, 0)'); ggCtx.fillStyle = ggGrad; ggCtx.fillRect(0, 0, 64, 64);
+        const groundGlowTex = new THREE.CanvasTexture(groundGlowCanvas); 
+        const groundGlowMat = new THREE.MeshBasicMaterial({ map: groundGlowTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.6 });
+        const groundGlowGeo = new THREE.PlaneGeometry(2.2, 2.2); 
+
+        for(let i = -60; i <= 60; i += 10) {
+            [-7, 7].forEach(x => {
+                const fixture = new THREE.Mesh(fixtureGeo, fixtureMat); fixture.position.set(x, 0.05, i);
+                const bulb = new THREE.Mesh(bulbGeo, bulbMat); bulb.position.set(x, 0.1, i);
+                const flare = new THREE.Sprite(flareMat); flare.scale.set(1.2, 1.2, 1.0); flare.position.set(x, 0.12, i);
+                const groundGlow = new THREE.Mesh(groundGlowGeo, groundGlowMat); groundGlow.rotation.x = -Math.PI / 2; groundGlow.position.set(x, 0.01, i);
+                runwayGroup.add(fixture, bulb, flare, groundGlow);
+            });
+        }
+
+        const particlesCount = 250; 
+        const particlesGeo = new THREE.BufferGeometry();
+        const posArray = new Float32Array(particlesCount * 3);
+        for(let i = 0; i < particlesCount * 3; i++) { posArray[i] = (Math.random() - 0.5) * 50; }
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMesh = new THREE.Points(particlesGeo, new THREE.PointsMaterial({ size: 0.06, color: 0xffeebb, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending }));
+        particlesMesh.position.y = 5; scene.add(particlesMesh);
+
+        // --- MODEL SAMOLOTU I LOGIKA ŁADOWANIA ---
+        const jetGroup = new THREE.Group(); scene.add(jetGroup);
+        const minimalLuxuryMaterial = new THREE.MeshPhysicalMaterial({ color: 0x1d1d21, metalness: 0.9, roughness: 0.2, clearcoat: 1.0, clearcoatRoughness: 0.05, transparent: true, opacity: 1.0 });
+
+        const loader = new GLTFLoader();
+        const loaderScreen = document.getElementById('loader');
+        const loaderText = document.getElementById('loader-text');
+        const loaderBar = document.getElementById('loader-bar');
+        const forceBtn = document.getElementById('force-start');
+        let isIntroFinished = false;
+
+        const triggerUI = () => {
+            isIntroFinished = true; controls.enabled = true;
+            gsap.to(loaderScreen, { opacity: 0, duration: 1.5, onComplete: () => loaderScreen.style.display = 'none' });
+            
+            const introTl = gsap.timeline();
+            introTl.to(camera.position, { x: 20, y: 4, z: 18, duration: 12.0, ease: "power2.inOut" }, "start")
+                   .to(camera.position, { x: 0, y: -0.5, z: 28, duration: 5.0, ease: "power3.inOut" }, "start+=12.0")
+                   .to('.ui-layer', { opacity: 1, duration: 1.0, ease: "power1.inOut" }, "start+=14.5")
+                   .fromTo('.logo', { filter: "blur(10px)", letterSpacing: "24px", opacity: 0 }, { filter: "blur(0px)", letterSpacing: "12px", opacity: 1, duration: 2.5, ease: "power3.out" }, "start+=14.5")
+                   .fromTo('.logo-flare', { x: -50, scaleX: 0, opacity: 0 }, { x: 30, scaleX: 1, opacity: 0.8, duration: 0.8, ease: "power2.in" }, "start+=15.0")
+                   .to('.logo-flare', { x: 120, scaleX: 0, opacity: 0, duration: 0.8, ease: "power2.out" }, "start+=15.8")
+                   .fromTo('.logo-sub', { y: 5, opacity: 0, letterSpacing: "2px" }, { y: 0, opacity: 1, letterSpacing: "7px", duration: 2.5, ease: "power2.out" }, "start+=15.2");
+        };
+
+        const fallbackTimer = setTimeout(() => {
+            if(!isIntroFinished) {
+                forceBtn.style.display = 'block';
+                loaderText.innerText = "MODEL LOAD DELAYED. YOU CAN BYPASS.";
+            }
+        }, 10000);
+
+        forceBtn.addEventListener('click', () => {
+            clearTimeout(fallbackTimer); triggerUI();
+        });
+
+        loader.load(
+            'samolot.eduair.glb', 
+            function (gltf) {
+                clearTimeout(fallbackTimer);
+                const aircraft = gltf.scene;
+                aircraft.traverse((child) => { if (child.isMesh) child.material = minimalLuxuryMaterial; });
+                aircraft.scale.set(10.0, 10.0, 10.0); aircraft.position.set(0, 50.0, -150.0); aircraft.rotation.x = 0.1; 
+                jetGroup.add(aircraft);
+
+                camera.position.set(15, 2, -30); camera.lookAt(0, 5, -10);
+
+                gsap.to(aircraft.position, { z: 0, duration: 12.0, ease: "power1.inOut" });
+                gsap.to(aircraft.position, { y: -2.2, duration: 11.5, ease: "power2.inOut", delay: 0.5 });
+                gsap.to(aircraft.rotation, { x: 0, duration: 4.5, ease: "power2.out", delay: 7.0 });
+
+                triggerUI();
+            },
+            function (xhr) {
+                if (xhr.lengthComputable) {
+                    const percentComplete = Math.round((xhr.loaded / xhr.total) * 100);
+                    loaderText.innerText = `ESTABLISHING SECURE LINK... ${percentComplete}%`;
+                    loaderBar.style.width = percentComplete + '%';
+                }
+            },
+            function (error) {
+                loaderText.innerText = 'SECURE LINK FAILED. INITIATING BYPASS...';
+                loaderBar.style.backgroundColor = 'red';
+                setTimeout(triggerUI, 2000);
+            }
+        );
+
+        // --- OBSŁUGA NOWYCH PRZYCISKÓW ---
+        let isBoardingActive = false;
+        const configBtn = document.getElementById('config-btn');
+        const dashBtn = document.getElementById('dash-btn');
+        const backEdunityBtn = document.getElementById('back-edunity-btn');
+        const fadeOverlay = document.getElementById('fade-overlay');
+
+        // Obsługa najechania myszką
+        [configBtn, dashBtn, backEdunityBtn].forEach(btn => {
+            btn.addEventListener('mouseenter', () => { if(!isMobile) document.body.classList.add('cursor-hover'); initAudio(); });
+            btn.addEventListener('mouseleave', () => { if(!isMobile) document.body.classList.remove('cursor-hover'); });
+        });
+
+        // Funkcja uruchamiająca przejście do przodu (z kamerą 3D)
+        function initiateForwardTransition(targetUrl) {
+            if(isBoardingActive) return;
+            isBoardingActive = true;
+            
+            playBoardingSound(); 
+            
+            controls.enabled = false; controls.autoRotate = false; document.body.classList.remove('cursor-hover'); 
+            gsap.to('.ui-layer', { opacity: 0, duration: 1.0, onComplete: () => document.querySelector('.ui-layer').style.display = 'none' });
+            
+            const tl = gsap.timeline();
+            tl.to(camera.position, { x: 0, y: 2, z: 12, duration: 3.5, ease: "power3.inOut" })
+              .to(controls.target, { x: 0, y: 4, z: 0, duration: 3.5, ease: "power3.inOut" }, "<");
+            tl.to(fadeOverlay, { opacity: 1, duration: 1.5, ease: "power2.inOut" }, "-=1.5");
+            
+            setTimeout(() => {
+                window.location.href = targetUrl;
+            }, 3500);
+        }
+
+        // Podpięcie linków pod główne przyciski
+        configBtn.addEventListener('click', () => initiateForwardTransition('configurator.html'));
+        dashBtn.addEventListener('click', () => initiateForwardTransition('dashboard.html'));
+
+        // Obsługa przycisku "Powrót" (tylko szybkie wyciemnienie)
+        backEdunityBtn.addEventListener('click', () => {
+            document.body.classList.remove('cursor-hover');
+            gsap.to(fadeOverlay, { opacity: 1, duration: 0.6, onComplete: () => {
+                // Wpisz tu adres platformy głównej Edunity
+                window.location.href = 'edunity.html'; 
+            }});
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight); 
+        });
+
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+            if (particlesMesh) {
+                particlesMesh.rotation.y += 0.0003; 
+                particlesMesh.position.y += Math.sin(time) * 0.002; 
+            }
+            if (isIntroFinished && !isBoardingActive) {
+                controls.update(); 
+            } else if (!isBoardingActive) {
+                camera.lookAt(0, 0, 0);
+            }
+            composer.render();
+        }
+        animate();
+    </script>
+</body>
+</html>
