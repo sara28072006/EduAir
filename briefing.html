@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +5,7 @@
     <title>EduAir - Premium Private Jet Experience</title>
     <meta name="google" content="notranslate">
     <style>
-        /* --- LUKSUSOWA TYPOGRAFIA (Rolex / Bombardier Vibe) --- */
+        /* --- LUKSUSOWA TYPOGRAFIA --- */
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Lexend+Peta:wght@400;500&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -15,13 +14,11 @@
             --bg-metal: #121214;
             --text-silver: #ececf1;
             --text-muted: #888891;
-            --metal-edge: rgba(255, 255, 255, 0.25);
             
             /* ZŁOTA PALETA LUXURY */
             --gold-dark: #7a5215;
             --gold-base: #c5a059;
             --gold-light: #fceabb;
-            --gold-white: #ffffff;
             --accent-gold-glow: rgba(197, 160, 89, 0.5);
             --accent-gold-intense: rgba(252, 234, 187, 0.8);
         }
@@ -30,7 +27,7 @@
             font-family: 'Montserrat', sans-serif;
             height: 100dvh;
             width: 100vw;
-            background-color: #030303;
+            background-color: #000000;
             color: var(--text-silver);
             overflow: hidden;
             display: flex;
@@ -39,7 +36,6 @@
             transition: filter 0.4s ease;
         }
 
-        /* --- FADE IN NA START (Połączenie z poprzednim ekranem) --- */
         #fade-in-start {
             position: fixed; inset: 0; background-color: #000;
             z-index: 999999; pointer-events: none;
@@ -47,27 +43,25 @@
         }
         @keyframes fadeOutBlack {
             0% { opacity: 1; }
-            40% { opacity: 1; } /* Utrzymuje czerń przez ułamek sekundy */
+            40% { opacity: 1; }
             100% { opacity: 0; }
         }
 
-        /* --- SUBTELNA WINIETA NA TLE --- */
         .bg-vignette {
             position: absolute; inset: 0; pointer-events: none; z-index: 5;
-            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.7) 100%);
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
         }
 
-        /* --- SKIP BUTTON --- */
+        /* Przycisk Skip widoczny od razu, z-index najwyższy */
         .skip-btn {
-            position: absolute; top: 45px; right: 65px; z-index: 10000;
+            position: fixed; top: 45px; right: 65px; z-index: 1000000;
             background: transparent; border: 1px solid rgba(255,255,255,0.15); color: var(--text-muted);
             font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; padding: 8px 16px;
-            cursor: pointer; transition: all 0.3s ease; border-radius: 4px;
+            cursor: pointer; transition: all 0.3s ease; border-radius: 4px; opacity: 1;
         }
         .skip-btn:hover { color: #fff; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.05); }
         .skip-btn.hidden { opacity: 0; pointer-events: none; }
 
-        /* --- ELEGANCKIE I POWOLNE WROTA (SHUTTERS) --- */
         .shutter {
             position: fixed; left: 0; width: 100%; height: 0;
             background: #050505; z-index: 100001; pointer-events: none;
@@ -75,11 +69,7 @@
         }
         #shutter-top { top: 0; border-bottom: 1px solid rgba(197, 160, 89, 0.15); }
         #shutter-bottom { bottom: 0; border-top: 1px solid rgba(197, 160, 89, 0.15); }
-        
-        body.launch-active #shutter-top, 
-        body.launch-active #shutter-bottom { height: 50.1%; }
 
-        /* --- METALICZNY EKRAN KOŃCOWY (SKÓRA/ALCANTARA) --- */
         #final-blackout {
             position: fixed; inset: 0; 
             background-color: #060606; 
@@ -91,36 +81,20 @@
         }
         #final-blackout.active { opacity: 1; pointer-events: auto; }
         
-        /* --- EFEKT GRAWERU I LENIWEGO ZŁOTA --- */
         .wow-sentence {
             font-family: 'Lexend Peta', sans-serif;
-            font-weight: 300;
-            text-transform: uppercase;
-            font-size: 24px; 
-            letter-spacing: 12px; 
-            line-height: 2.2; 
-            text-align: center;
-            max-width: 85%;
-            
-            /* Gradient przeprojektowany: Złoto po lewej, ciemny metal po prawej */
+            font-weight: 300; text-transform: uppercase; font-size: 24px; 
+            letter-spacing: 12px; line-height: 2.2; text-align: center; max-width: 85%;
             background: linear-gradient(110deg, var(--gold-light) 0%, var(--gold-base) 15%, var(--gold-dark) 30%, #1a1a1a 45%, #050505 100%);
-            background-size: 300% auto;
-            background-position: 100% center; /* Ustawienie startowe na ciemnym kolorze */
-            color: transparent;
-            -webkit-background-clip: text;
-            background-clip: text;
-            
+            background-size: 300% auto; background-position: 100% center; 
+            color: transparent; -webkit-background-clip: text; background-clip: text;
             filter: drop-shadow(0px 1px 0px rgba(255, 255, 255, 0.08)) drop-shadow(0px -1px 1px rgba(0, 0, 0, 1));
-            
             -webkit-mask-image: linear-gradient(to right, #000 50%, transparent 50%);
-            -webkit-mask-size: 200% 100%;
-            -webkit-mask-position: 100% 0;
-            opacity: 1;
-            transform: scale(0.95);
+            -webkit-mask-size: 200% 100%; -webkit-mask-position: 100% 0;
+            opacity: 1; transform: scale(0.95);
         }
 
         .wow-sentence.reveal {
-            /* Nowe, gładkie animacje: najpierw powolne grawerowanie (4s), potem wylewa się złoto (4.5s) i zostaje */
             animation: 
                 writeEngraving 4s ease-out forwards, 
                 pourGold 4.5s ease-out 2s forwards; 
@@ -130,63 +104,47 @@
             0% { -webkit-mask-position: 100% 0; transform: scale(0.95); filter: blur(4px) drop-shadow(0px 0px 0px transparent); }
             100% { -webkit-mask-position: 0% 0; transform: scale(1); filter: blur(0px) drop-shadow(0px 1px 0px rgba(255, 255, 255, 0.08)) drop-shadow(0px -1px 1px rgba(0, 0, 0, 1)); }
         }
-
         @keyframes pourGold {
             0% { background-position: 100% center; }
-            100% { background-position: 0% center; } /* Zatrzymuje się całkowicie na złocie */
+            100% { background-position: 0% center; } 
         }
 
-        /* --- KINOWE PASY (LETTERBOXING) --- */
         .cinematic-bars {
             position: fixed; left: 0; width: 100%; height: 0; background: #000; z-index: 9999;
             transition: height 1.5s cubic-bezier(0.8, 0, 0.2, 1); pointer-events: none;
         }
         .cinematic-bar-top { top: 0; }
         .cinematic-bar-bottom { bottom: 0; }
-        body.launch-active .cinematic-bars { height: 12vh; } 
-
-        /* --- ST. MORITZ FROSTED INTRO --- */
-        .frosted-intro {
-            position: fixed; inset: 0; z-index: 1000; background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(50px) saturate(1.2); -webkit-backdrop-filter: blur(50px) saturate(1.2);
-            pointer-events: none; transition: opacity 3s cubic-bezier(0.4, 0, 0.2, 1), backdrop-filter 3s ease, -webkit-backdrop-filter 3s ease;
-            opacity: 1; /* Szron jest od początku, ale przykrywa go czarne tło */
+        
+        body.warp-active .cinematic-bars { height: 12vh; } 
+        
+        body.warp-active .bg-parallax-wrapper {
+            animation: warpDriveBg 1.8s cubic-bezier(0.5, 0, 0.2, 1) forwards;
         }
-        .frosted-intro::after {
-            content: ''; position: absolute; inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 600 600' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            opacity: 0.12; mix-blend-mode: overlay;
-        }
-        .frosted-intro.melted { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
-
-        .ice-frame {
-            position: fixed; inset: 0; z-index: 900; pointer-events: none;
-            background: radial-gradient(circle, transparent 65%, rgba(197, 160, 89, 0.05) 100%); box-shadow: inset 0 0 120px rgba(255, 255, 255, 0.05);
+        body.warp-active .stage, 
+        body.warp-active header, 
+        body.warp-active .start-action, 
+        body.warp-active .manifest-btn {
+            animation: warpDriveUI 1.5s cubic-bezier(0.5, 0, 0.2, 1) forwards;
         }
 
-        body::after {
-            content: ''; position: absolute; inset: 0; z-index: 900; pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            opacity: 0.04; mix-blend-mode: overlay;
+        @keyframes warpDriveBg {
+            0% { filter: brightness(1) blur(0px); transform: scale(1); }
+            10% { transform: scale(1.02) translate(8px, -8px); filter: brightness(1.2) blur(1px); }
+            20% { transform: scale(1.04) translate(-6px, 6px); filter: brightness(1.5) blur(3px); }
+            30% { transform: scale(1.06) translate(4px, -4px); }
+            100% { filter: brightness(3) blur(25px); transform: scale(2.5) translate(0, 0); opacity: 0; }
         }
 
-        /* --- MAJESTATYCZNE, POWOLNE ODDALANIE INTERFEJSU --- */
-        body.launch-active .stage, body.launch-active header, body.launch-active .start-action, body.launch-active .manifest-btn {
-            transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1), opacity 4s cubic-bezier(0.25, 1, 0.5, 1), filter 4s ease;
-            transform: scale(0.9) translateY(-10px); opacity: 0; filter: blur(15px); pointer-events: none;
-        }
-        body.launch-active .bg-parallax-wrapper {
-            transition: transform 8s cubic-bezier(0.25, 1, 0.5, 1), filter 6s ease;
-            transform: scale(1.05) !important; filter: brightness(0.1) blur(10px);
+        @keyframes warpDriveUI {
+            0% { opacity: 1; transform: scale(1) translateZ(0); filter: blur(0); }
+            15% { transform: scale(0.98) translateZ(-20px); filter: blur(1px); }
+            100% { opacity: 0; transform: scale(1.4) translateZ(100px); filter: blur(20px); pointer-events: none; }
         }
 
         .bg-parallax-wrapper {
             position: absolute; top: -3%; left: -3%; width: 106%; height: 106%; z-index: 0;
             transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        body:has(.flight-serial:hover) .bg-parallax-wrapper { 
-            filter: brightness(0.4); 
         }
 
         .dramatic-bg {
@@ -194,34 +152,38 @@
             background-image: url('https://images.unsplash.com/photo-1549880181-56a44cf4a9a5?q=80&w=2070&auto=format&fit=crop');
             background-size: cover; background-position: center 40%;
             filter: brightness(0.65) contrast(1.15) saturate(0.8) sepia(0.15) hue-rotate(195deg);
-            transform: scale(1.08); animation: slowPushIn 70s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            transform: scale(1.08); 
+            opacity: 0; 
+            transition: opacity 5s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .dramatic-bg.revealed {
+            opacity: 1; 
+            animation: slowPushIn 70s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
 
         .sapphire-crystal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
             background: radial-gradient(circle at center, rgba(0,5,20,0.1) 0%, rgba(0,0,5,0.95) 100%); mix-blend-mode: multiply; pointer-events: none;
             box-shadow: inset 0 0 100px rgba(197, 160, 89, 0.05), inset 0 0 20px rgba(255, 255, 255, 0.1); backdrop-filter: brightness(1.05) contrast(1.02);
+            opacity: 0; transition: opacity 4s ease;
         }
+        .sapphire-crystal-overlay.revealed { opacity: 1; }
 
         .lens-flare {
             position: absolute; top: var(--mouse-y, 50%); left: 0; width: 200%; height: 8px; transform: translateY(-50%);
             background: linear-gradient(90deg, transparent 0%, rgba(197, 160, 89, 0.0) 20%, rgba(252, 234, 187, 0.3) 45%, rgba(255,255,255,0.8) 50%, rgba(252, 234, 187, 0.3) 55%, rgba(197, 160, 89, 0.0) 80%, transparent 100%);
-            mix-blend-mode: screen; pointer-events: none; z-index: 3; filter: blur(2px); opacity: 0.4; transition: top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            mix-blend-mode: screen; pointer-events: none; z-index: 3; filter: blur(2px); opacity: 0; transition: top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 3s ease;
         }
-
-        .crystal-reflection {
-            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06) 0%, transparent 50%);
-            mix-blend-mode: screen; pointer-events: none; z-index: 2; transition: background 0.15s ease;
-        }
+        .lens-flare.revealed { opacity: 0.4; }
 
         @keyframes slowPushIn { to { transform: scale(1); } }
 
-        /* --- HEADER --- */
+        /* ZMIANA: Przywrócony odpowiedni układ nagłówka (Space Between) */
         header {
             display: flex; justify-content: space-between; align-items: center; padding: 45px 65px; position: relative; z-index: 100;
-            opacity: 0; animation: fadeIn 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s forwards; transition: filter 0.4s ease, opacity 0.4s ease;
+            opacity: 0; transition: filter 0.4s ease, opacity 2.5s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
+        header.revealed { opacity: 1; }
         
         body:has(.stat-card:hover) header, 
         body:has(.stat-card:hover) .route-container svg,
@@ -250,6 +212,7 @@
         .flight-serial .label { font-size: 8px; color: #6e727a; text-transform: uppercase; letter-spacing: 4px; font-weight: 600; }
         .flight-serial .value { font-size: 12px; color: #e4e4eb; font-weight: 400; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.5px; text-shadow: 0 0 8px rgba(255,255,255,0.2); }
 
+        /* Guzik back-btn */
         .back-btn {
             display: flex; align-items: center; gap: 12px; background: transparent; border: none; color: var(--text-muted); font-family: 'Montserrat', sans-serif;
             font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -260,30 +223,32 @@
         .stage { flex-grow: 1; position: relative; display: flex; justify-content: center; align-items: center; width: 100%; z-index: 10; }
         .route-container { position: absolute; top: 15%; width: 85%; max-width: 1100px; height: 500px; filter: drop-shadow(0 15px 30px rgba(0,0,0,0.9)); }
         
-        .compass-ring { position: absolute; inset: -40px; z-index: 5; pointer-events: none; opacity: 0; animation: fadeIn 2s cubic-bezier(0.2, 0.8, 0.2, 1) 2.5s forwards; transition: filter 0.4s ease; }
+        .compass-ring { position: absolute; inset: -40px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 2s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s ease; }
+        .compass-ring.revealed { opacity: 1; }
         .c-point { position: absolute; font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #44474c; letter-spacing: 2px; font-weight: 400; display: flex; align-items: center; gap: 6px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
         .c-point span { color: #6e727a; font-size: 11px; }
         .c-n { top: 0; left: 50%; transform: translateX(-50%); } .c-s { bottom: 0; left: 50%; transform: translateX(-50%); }
         .c-e { top: 50%; right: -20px; transform: translateY(-50%) rotate(90deg); } .c-w { top: 50%; left: -20px; transform: translateY(-50%) rotate(-90deg); }
 
         svg.map-svg { width: 100%; height: 100%; overflow: visible; transition: filter 0.4s ease; }
-        .path-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 3; stroke-linecap: round; }
+        .path-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 3; stroke-linecap: round; opacity: 0; transition: opacity 2s ease; }
+        .path-bg.revealed { opacity: 1; }
         
         .path-active { 
             fill: none; 
             stroke: url(#solidGoldMetallic); 
-            stroke-width: 3.5; 
+            stroke-width: 2.5; 
             stroke-linecap: round; 
-            filter: drop-shadow(0 0 10px var(--accent-gold-glow)) drop-shadow(0 0 3px var(--gold-light)); 
+            filter: drop-shadow(0 0 5px rgba(252, 234, 187, 0.7)) drop-shadow(0 0 1px #ffffff); 
         }
 
         .tracer-flare {
             position: absolute; width: 6px; height: 6px; background: #fff; border-radius: 50%;
             offset-path: path("M 50,350 C 250,450 400,50 650,150 S 900,350 950,250"); offset-distance: 0%; z-index: 15; opacity: 0; 
-            box-shadow: 0 0 10px 4px #fff, 0 0 20px 10px var(--gold-light), 0 0 40px 20px var(--gold-base);
+            box-shadow: 0 0 8px 3px #fff, 0 0 15px 8px var(--gold-light), 0 0 30px 15px var(--gold-base);
         }
-        .tracer-flare.active { opacity: 1; animation: runFlare 4.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards; }
-        @keyframes runFlare { 0% { offset-distance: 0%; opacity: 0; } 5% { opacity: 1; } 95% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
+        .tracer-flare.active { animation: runFlare 7.5s linear forwards; }
+        @keyframes runFlare { 0% { offset-distance: 0%; opacity: 0; } 2% { opacity: 1; } 98% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
 
         .radar-sweep {
             position: absolute; width: 180px; height: 4px; background: linear-gradient(90deg, transparent 0%, rgba(252,234,187,0.9) 50%, transparent 100%);
@@ -294,29 +259,31 @@
         @keyframes opticalSweep { 0% { offset-distance: -10%; opacity: 0; } 10% { opacity: 0.8; } 30% { opacity: 0.8; } 40% { offset-distance: 110%; opacity: 0; } 100% { offset-distance: 110%; opacity: 0; } }
 
         .waypoint { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; opacity: 0; pointer-events: none; z-index: 20; transition: filter 0.4s ease; }
-        .waypoint.dormant { opacity: 0.4; animation: dormantPulse 4s ease-in-out infinite alternate; }
-        @keyframes dormantPulse { from { opacity: 0.3; } to { opacity: 0.6; } }
-        .waypoint.revealed { opacity: 1; transition: opacity 0.8s ease; animation: none; pointer-events: auto; cursor: crosshair; }
+        .waypoint.dormant { opacity: 0; } 
+        .waypoint.revealed { opacity: 1; transition: opacity 0.4s ease; pointer-events: auto; cursor: crosshair; }
         .waypoint::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 180px; height: 180px; border-radius: 50%; z-index: 30; }
 
         .dot {
             width: 18px; height: 18px; border-radius: 50%; position: relative; z-index: 2; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             background: radial-gradient(circle at 30% 30%, var(--gold-light) 0%, var(--gold-base) 40%, var(--gold-dark) 80%, #3a2409 100%);
             border: 1px solid rgba(252, 234, 187, 0.5);
-            box-shadow: 
-                inset 0 -2px 5px rgba(0,0,0,0.8),
-                inset 0 2px 4px rgba(255,255,255,0.6),
-                0 0 15px var(--accent-gold-glow),
-                0 0 3px var(--gold-light);
+            box-shadow: inset 0 -2px 5px rgba(0,0,0,0.8), inset 0 2px 4px rgba(255,255,255,0.6), 0 0 15px var(--accent-gold-glow), 0 0 3px var(--gold-light);
         }
-        .waypoint:hover .dot { 
+
+        @keyframes breatheLight {
+            0% { box-shadow: inset 0 -2px 5px rgba(0,0,0,0.8), inset 0 2px 4px rgba(255,255,255,0.6), 0 0 10px var(--accent-gold-glow), 0 0 2px var(--gold-light); transform: scale(1); }
+            50% { box-shadow: inset 0 -2px 5px rgba(0,0,0,0.8), inset 0 2px 4px rgba(255,255,255,0.6), 0 0 25px var(--gold-base), 0 0 8px #ffffff; transform: scale(1.08); }
+            100% { box-shadow: inset 0 -2px 5px rgba(0,0,0,0.8), inset 0 2px 4px rgba(255,255,255,0.6), 0 0 10px var(--accent-gold-glow), 0 0 2px var(--gold-light); transform: scale(1); }
+        }
+        .waypoint.revealed .dot { 
+            animation: breatheLight 3.5s ease-in-out infinite; 
+        }
+        
+        .waypoint.revealed:hover .dot { 
+            animation: none;
             background: radial-gradient(circle at 50% 50%, #ffffff 0%, var(--gold-light) 20%, var(--gold-base) 60%, var(--gold-dark) 100%);
-            transform: scale(1.3);
-            border: 1px solid #ffffff;
-            box-shadow: 
-                inset 0 -3px 6px rgba(0,0,0,0.9),
-                0 0 25px var(--gold-base), 
-                0 0 10px #ffffff;
+            transform: scale(1.3); border: 1px solid #ffffff;
+            box-shadow: inset 0 -3px 6px rgba(0,0,0,0.9), 0 0 25px var(--gold-base), 0 0 10px #ffffff;
         }
 
         .waypoint-label { margin-top: 24px; font-size: 9px; font-weight: 600; color: #b0b4bd; letter-spacing: 4px; text-transform: uppercase; transform: translateY(10px); opacity: 0; text-shadow: 0 4px 8px rgba(0,0,0,1); transition: color 2.5s ease, text-shadow 2.5s ease; }
@@ -432,6 +399,8 @@
 
     <div id="fade-in-start"></div>
 
+    <button class="skip-btn" id="skip-btn">[SKIP SEQUENCE]</button>
+
     <div class="shutter" id="shutter-top"></div>
     <div class="shutter" id="shutter-bottom"></div>
 
@@ -442,8 +411,6 @@
     <div class="cinematic-bars cinematic-bar-top"></div>
     <div class="cinematic-bars cinematic-bar-bottom"></div>
 
-    <div class="frosted-intro" id="frosted-intro"></div><div class="ice-frame"></div>
-
     <div class="bg-parallax-wrapper" id="bg-parallax">
         <div class="bg-vignette"></div>
         <div class="dramatic-bg"></div>
@@ -451,10 +418,8 @@
     
     <div class="sapphire-crystal-overlay"></div>
     <div class="lens-flare"></div> 
-    <div class="crystal-reflection"></div>
 
-    <header>
-        <button class="skip-btn" id="skip-btn">[SKIP SEQUENCE]</button>
+    <header id="main-header">
         <div class="logo">EduAir</div>
         <div class="flight-serial">
             <div class="status-dot"></div><span class="label">FLT REF</span><span class="value decode-text" data-target="EA-042">00-000</span>
@@ -483,7 +448,7 @@
                         <stop offset="100%" style="stop-color:#7a5215; stop-opacity:1" />
                     </linearGradient>
                 </defs>
-                <path class="path-bg" d="M 50,350 C 250,450 400,50 650,150 S 900,350 950,250" />
+                <path id="path-bg" class="path-bg" d="M 50,350 C 250,450 400,50 650,150 S 900,350 950,250" />
                 <path id="flight-path" class="path-active" d="M 50,350 C 250,450 400,50 650,150 S 900,350 950,250" />
             </svg>
 
@@ -594,19 +559,13 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const intro = document.getElementById('frosted-intro');
             const path = document.getElementById('flight-path');
             const skipBtn = document.getElementById('skip-btn');
             const pathLength = path.getTotalLength();
             path.style.strokeDasharray = pathLength; path.style.strokeDashoffset = pathLength;
 
-            // 1. Zdejmujemy szron DOPIERO GDY czarne tło zniknie (po 1.5 sekundy)
-            setTimeout(() => { if(intro) intro.classList.add('melted'); }, 1500);
-
-            const drawDuration = 4500; 
-            
-            // 2. Linia lotu zaczyna się rysować DOPIERO gdy szron odmarznie (po 3.5 sekundy)
-            const startDelay = 3500; 
+            const drawDuration = 7500; 
+            const startDelay = 1500; 
 
             const decodeText = (element, instant = false) => {
                 if (!element) return;
@@ -667,12 +626,11 @@
                 const moveX = (e.clientX - centerX) * -0.03; const moveY = (e.clientY - centerY) * -0.03;
                 const bgParallax = document.getElementById('bg-parallax');
 
-                if(!document.body.classList.contains('launch-active')) {
+                if(!document.body.classList.contains('warp-active') && !document.body.classList.contains('launch-active')) {
                     if(bgParallax) bgParallax.style.transform = `translate(${moveX}px, ${moveY}px)`;
                 }
             });
 
-            // MANIFEST MODAL LOGIC
             const manifestBtn = document.getElementById('manifest-btn');
             const manifestModal = document.getElementById('manifest-modal');
             const closeManifestBtn = document.getElementById('close-manifest');
@@ -685,56 +643,79 @@
             const engageBtn = document.getElementById('engage-btn');
             if(engageBtn) {
                 engageBtn.addEventListener('click', () => {
-                    playEngage(); engageBtn.classList.add('locked'); skipBtn.classList.add('hidden');
+                    playEngage(); 
+                    engageBtn.classList.add('locked'); 
+                    skipBtn.classList.add('hidden');
                     if(manifestModal) manifestModal.classList.remove('active'); 
                     
                     setTimeout(() => {
-                        document.body.classList.add('launch-active'); 
-                        
+                        document.body.classList.add('warp-active'); 
                         setTimeout(() => {
                             document.getElementById('final-blackout').classList.add('active');
-                            
                             setTimeout(() => {
                                 document.querySelector('.wow-sentence').classList.add('reveal');
-                                
-                                // ZMIENIONY CZAS NA 9.5 SEKUNDY (Żeby spokojnie przeczytać)
                                 setTimeout(() => {
                                     window.location.href = 'boarding.html';
                                 }, 9500); 
-
-                            }, 1500); 
-
-                        }, 2000); 
-                    }, 200); 
+                            }, 1000); 
+                        }, 1500); 
+                    }, 100); 
                 });
             }
 
-            // Timeline Główna
             const runSequence = () => {
-                const serialTarget = document.querySelector('.flight-serial .decode-text');
-                if(serialTarget) decodeText(serialTarget);
-
-                const wp1 = document.getElementById('wp-1'); if(wp1) { wp1.classList.remove('dormant'); wp1.classList.add('revealed'); }
+                
                 const tracer = document.getElementById('tracer'); if(tracer) tracer.classList.add('active'); 
                 
-                path.style.transition = `stroke-dashoffset ${drawDuration}ms cubic-bezier(0.25, 0.1, 0.25, 1)`;
+                path.style.transition = `stroke-dashoffset ${drawDuration}ms linear`;
                 path.style.strokeDashoffset = 0;
 
-                animationTimeouts.push(setTimeout(() => { const wp2 = document.getElementById('wp-2'); if(wp2) { wp2.classList.remove('dormant'); wp2.classList.add('revealed'); } }, drawDuration * 0.45));
-                animationTimeouts.push(setTimeout(() => { const wp3 = document.getElementById('wp-3'); if(wp3) { wp3.classList.remove('dormant'); wp3.classList.add('revealed'); } }, drawDuration * 0.95));
+                animationTimeouts.push(setTimeout(() => { 
+                    const wp1 = document.getElementById('wp-1'); 
+                    if(wp1) { wp1.classList.remove('dormant'); wp1.classList.add('revealed'); playTick(); } 
+                }, 100));
+
+                animationTimeouts.push(setTimeout(() => { 
+                    const wp2 = document.getElementById('wp-2'); 
+                    if(wp2) { wp2.classList.remove('dormant'); wp2.classList.add('revealed'); playTick(); } 
+                }, drawDuration * 0.58));
+
+                animationTimeouts.push(setTimeout(() => { 
+                    const wp3 = document.getElementById('wp-3'); 
+                    if(wp3) { wp3.classList.remove('dormant'); wp3.classList.add('revealed'); playTick(); } 
+                }, drawDuration * 0.95));
 
                 animationTimeouts.push(setTimeout(() => {
                     const statMode = document.getElementById('stat-mode'); if(statMode) statMode.classList.add('revealed');
                     animationTimeouts.push(setTimeout(() => { const statTime = document.getElementById('stat-time'); if(statTime) { statTime.classList.add('revealed'); decodeText(statTime.querySelector('.decode-text')); } }, 250));
                     animationTimeouts.push(setTimeout(() => { const statPax = document.getElementById('stat-pax'); if(statPax) { statPax.classList.add('revealed'); decodeText(statPax.querySelector('.decode-text')); } }, 500));
-                    animationTimeouts.push(setTimeout(() => { const startAction = document.getElementById('start-action'); if(startAction) startAction.classList.add('revealed'); }, 1400));
-                    animationTimeouts.push(setTimeout(() => { if(manifestBtn) manifestBtn.classList.add('revealed'); skipBtn.classList.add('hidden'); }, 1800));
-                    animationTimeouts.push(setTimeout(() => { const radarSweep = document.getElementById('radar-sweep'); if(radarSweep) radarSweep.classList.add('active'); }, 2500));
-                    animationTimeouts.push(setTimeout(init3DHover, 2200));
-                }, drawDuration + 400));
+                    
+                    animationTimeouts.push(setTimeout(() => {
+                        const bg = document.querySelector('.dramatic-bg'); if(bg) bg.classList.add('revealed');
+                        const overlay = document.querySelector('.sapphire-crystal-overlay'); if(overlay) overlay.classList.add('revealed');
+                        const pathBg = document.getElementById('path-bg'); if(pathBg) pathBg.classList.add('revealed');
+                        
+                        animationTimeouts.push(setTimeout(() => {
+                            // ZMIANA: Gdy pojawia się reszta interfejsu (w tym Header z przyciskiem Back), guzik Skip znika
+                            const header = document.getElementById('main-header'); if(header) header.classList.add('revealed');
+                            skipBtn.classList.add('hidden');
+                            
+                            const compass = document.querySelector('.compass-ring'); if(compass) compass.classList.add('revealed');
+                            const flare = document.querySelector('.lens-flare'); if(flare) flare.classList.add('revealed');
+                            const serialTarget = document.querySelector('.flight-serial .decode-text'); if(serialTarget) decodeText(serialTarget);
+                            
+                            animationTimeouts.push(setTimeout(() => { const startAction = document.getElementById('start-action'); if(startAction) startAction.classList.add('revealed'); }, 800));
+                            animationTimeouts.push(setTimeout(() => { if(manifestBtn) manifestBtn.classList.add('revealed'); }, 1200));
+                            animationTimeouts.push(setTimeout(() => { const radarSweep = document.getElementById('radar-sweep'); if(radarSweep) radarSweep.classList.add('active'); }, 1500));
+                            animationTimeouts.push(setTimeout(init3DHover, 1200));
+                            
+                        }, 2500)); 
+                        
+                    }, 1400)); 
+
+                }, drawDuration + 200));
             };
 
-            // Obsługa przeskoczenia sekwencji (Skip)
             const skipSequence = () => {
                 animationTimeouts.forEach(clearTimeout);
                 skipBtn.classList.add('hidden');
@@ -747,6 +728,13 @@
                     if(el) { el.classList.remove('dormant'); el.classList.add('revealed'); }
                 });
 
+                const bg = document.querySelector('.dramatic-bg'); if(bg) bg.classList.add('revealed');
+                const overlay = document.querySelector('.sapphire-crystal-overlay'); if(overlay) overlay.classList.add('revealed');
+                const pathBg = document.getElementById('path-bg'); if(pathBg) pathBg.classList.add('revealed');
+                const header = document.getElementById('main-header'); if(header) header.classList.add('revealed');
+                const compass = document.querySelector('.compass-ring'); if(compass) compass.classList.add('revealed');
+                const flare = document.querySelector('.lens-flare'); if(flare) flare.classList.add('revealed');
+
                 ['stat-mode', 'stat-time', 'stat-pax', 'start-action', 'manifest-btn'].forEach(id => {
                     const el = document.getElementById(id);
                     if(el) el.classList.add('revealed');
@@ -755,16 +743,11 @@
                 document.querySelectorAll('.decode-text').forEach(el => decodeText(el, true));
                 const radarSweep = document.getElementById('radar-sweep'); if(radarSweep) radarSweep.classList.add('active');
                 init3DHover();
-                
-                // SKRÓT ZWROTU DO BOARDINGU (dla testów)
-                window.location.href = 'boarding.html';
             };
 
             skipBtn.addEventListener('click', skipSequence);
-            
-            // Start po opóźnieniu (dajemy czas żeby fad-in-black zniknął zanim wejdzie szkło i mapa)
             animationTimeouts.push(setTimeout(runSequence, startDelay));
         });
     </script>
 </body>
-</html> mam ten bład tutaj na local hoscie crbug/1173575, non-JS module files deprecated.
+</html>
